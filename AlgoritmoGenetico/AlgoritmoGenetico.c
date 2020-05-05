@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <time.h>
 
 #define CHAO 0
 #define PAREDE 1
@@ -12,6 +13,14 @@
     float probMut = 0.1;
     float probCruz = 0.7;
 
+    int coluna_atual = 1,
+    linha_atual = 1,
+    coluna_atual2 = 1,
+    linha_atual2 = 1;
+
+    int key,
+    passos;
+
 typedef struct individuo{
     int x;
     int y;
@@ -22,6 +31,7 @@ int mapa[20][20];
 
 void gera_mapa() {
     int m, n;
+    srand(time(NULL));
 
     for (m = 0; m < 20;m++)
     {
@@ -67,21 +77,43 @@ int desenhar_mapa(int mapa[20][20]) {
     return 1;
 }
 void iniciaPopulacao(){
-    individuo ind;
-    int vetInd[tamPop];
-    for(int i = 0; i < tamPop; i++){
-        for(int j = 0; j < tamGenes; j++){
-            int cartX = rand() % 10;
-            int cartY = rand() % 20;
+    
+}
 
-            ind.x = cartX;
-            ind.y = cartY;
-        }
+int paraBaixo(){
+    linha_atual = 1 + linha_atual;
+    passos = passos + 1;
+
+    if(mapa[linha_atual][coluna_atual] == PAREDE){
+        linha_atual = linha_atual - 1;
     }
 }
 
-int geracoes(individuo vet[], int tamVet){
+int paraCima(){
+    linha_atual = linha_atual - 1;
+    passos = passos + 1;
 
+    if(mapa[linha_atual][coluna_atual] == PAREDE){
+        linha_atual = linha_atual + 1;
+    }
+}
+
+int paraDireita(){
+    coluna_atual = coluna_atual + 1;
+    passos = passos + 1;
+
+    if(mapa[linha_atual][coluna_atual] == PAREDE){
+        coluna_atual = coluna_atual - 1;
+    }
+}
+
+int paraEsquerda(){
+    coluna_atual = coluna_atual - 1;
+    passos = passos + 1;
+
+    if(mapa[linha_atual][coluna_atual] == PAREDE){
+        coluna_atual = coluna_atual + 1;
+    }
 }
 
 int main(){
