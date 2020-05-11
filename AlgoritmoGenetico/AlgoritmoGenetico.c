@@ -106,7 +106,7 @@ void iniciaPopulacao()
     {
         individ1[i][geracaoAtual] = rand() % 3;
         printf("\nindividuo 1\n");
-        printf("crom: %d", individ1[i][geracaoAtual]);
+        printf("crom: %d\n", individ1[i][geracaoAtual]);
         percurso(individ1[i][geracaoAtual]);
         i++;
         if (saida == 1)
@@ -126,7 +126,7 @@ void iniciaPopulacao()
     {
         individ2[j][geracaoAtual] = rand() % 4;
         printf("\nindividuo 2\n");
-        printf("crom: %d", individ2[j][geracaoAtual]);
+        printf("crom: %d\n", individ2[j][geracaoAtual]);
         percurso(individ2[j][geracaoAtual]);
         j++;
 
@@ -147,7 +147,7 @@ void iniciaPopulacao()
     {
         individ3[k][geracaoAtual] = rand() % 4;
         printf("\nindividuo 3\n");
-        printf("crom: %d", individ3[k][geracaoAtual]);
+        printf("crom: %d\n", individ3[k][geracaoAtual]);
         percurso(individ3[k][geracaoAtual]);
         k++;
 
@@ -168,7 +168,7 @@ void iniciaPopulacao()
     {
         individ4[l][geracaoAtual] = rand() % 4;
         printf("\nindividuo 4\n");
-        printf("crom: %d", individ4[l][geracaoAtual]);
+        printf("crom: %d\n", individ4[l][geracaoAtual]);
         percurso(individ4[l][geracaoAtual]);
         l++;
 
@@ -233,7 +233,7 @@ void crossOver()
         {
             individ1[a][geracaoAtual] = rand() % 4;
             printf("\nindividuo 1 ger %d\n", geracaoAtual + 1);
-            printf("crom: %d", individ1[i][geracaoAtual]);
+            printf("crom: %d\n", individ1[i][geracaoAtual]);
             percurso(individ1[i][geracaoAtual]);
             a++;
             if (saida == 1)
@@ -331,7 +331,7 @@ void crossOver()
         {
             individ2[b][geracaoAtual] = rand() % 4;
             printf("\nindividuo 2\n");
-            printf("crom: %d", individ2[b][geracaoAtual]);
+            printf("crom: %d\n", individ2[b][geracaoAtual]);
             percurso(individ2[b][geracaoAtual]);
             b++;
 
@@ -383,19 +383,23 @@ void crossOver()
                 } while (escolha == aux);
                 if (maiorGene() == i)
                 {
-                    individ2[b][geracaoAtual] = individ1[b][geracaoAtual - 1];
+                    x = rand() % i;
+                    individ2[b][geracaoAtual] = individ1[x][geracaoAtual - 1];
                 }
                 else if (maiorGene() == j)
                 {
-                    individ2[b][geracaoAtual] = individ2[b][geracaoAtual - 1];
+                    x = rand() % j;
+                    individ2[b][geracaoAtual] = individ2[x][geracaoAtual - 1];
                 }
                 else if (maiorGene() == k)
                 {
-                    individ2[b][geracaoAtual] = individ3[b][geracaoAtual - 1];
+                    x = rand() % k;
+                    individ2[b][geracaoAtual] = individ3[x][geracaoAtual - 1];
                 }
                 else if (maiorGene() == l)
                 {
-                    individ2[b][geracaoAtual] = individ4[b][geracaoAtual - 1];
+                    x = rand() % l;
+                    individ2[b][geracaoAtual] = individ4[x][geracaoAtual - 1];
                 }
             }
             printf("\nindividuo 2 ger %d\n", geracaoAtual + 1);
@@ -571,6 +575,7 @@ int main()
     {
         printf("ta bom, tchau");
     }
+    printf("geracao: %d", geracaoAtual);
 
     return 0;
 }
