@@ -26,12 +26,13 @@ int individ1[80][numGeracoes],
 int coluna_atual = 1,
     linha_atual = 1,
     coluna_anterior = 1,
-    linha_anterior = 1;
+    linha_anterior = 1,
+    linha, coluna;
 
 int key,
     passos;
 
-int mapa[20][30];
+int **mapa;
 
 void percurso(int x);
 void gera_mapa();
@@ -45,15 +46,24 @@ void paraEsquerda();
 int maiorGene();
 int roleta();
 int mutacao();
+int **alocaMapa(int l, int c);
 
 void gera_mapa()
 {
-    int m, n;
+    int m, n, lnhia, coluna;
     srand(time(NULL));
 
-    for (m = 0; m < 20; m++)
+    printf("quantas linhas?\n");
+    scanf("%d", &linha);
+
+    printf("quantas colunas?\n");
+    scanf("%d", &coluna);
+
+    mapa = alocaMapa(linha, coluna);
+
+    for (m = 0; m < linha; m++)
     {
-        for (n = 0; n < 30; n++)
+        for (n = 0; n < coluna; n++)
         {
             if (mapa[m][n] == 0)
             {
@@ -68,37 +78,55 @@ void gera_mapa()
             mapa[0][n] = 3;
         }
     }
-    n = rand() % 30;
-    m = rand() % 20;
+    n = rand() % coluna;
+    m = rand() % linha;
     mapa[m][n] = 4;
 }
 
 int desenhar_mapa()
 {
-    int linha, coluna;
-    for (linha = 0; linha < 20; linha++)
+    int linha1, coluna1;
+    for (linha1 = 0; linha1 < linha; linha1++)
     {
-        for (coluna = 0; coluna < 30; coluna++)
+        for (coluna1 = 0; coluna1 < coluna; coluna1++)
         {
 
-            if ((linha == linha_atual) && (coluna == coluna_atual))
+            if ((linha1 == linha_atual) && (coluna1 == coluna_atual))
             {
                 printf(".");
                 continue;
             }
-            if (mapa[linha][coluna] == CHAO)
+            if (mapa[linha1][coluna1] == CHAO)
                 printf(" ");
-            if (mapa[linha][coluna] == PAREDE)
+            if (mapa[linha1][coluna1] == PAREDE)
                 printf("|");
-            if (mapa[linha][coluna] == SAIDA)
+            if (mapa[linha1][coluna1] == SAIDA)
                 printf("#");
-            if (mapa[linha][coluna] == TETO)
+            if (mapa[linha1][coluna1] == TETO)
                 printf("-");
         }
         printf("\n");
     }
     return 1;
 }
+
+int **alocaMapa(int l, int c)
+{
+    int i, j;
+
+    int **m = (int **)malloc(l * sizeof(int *));
+
+    for (i = 0; i < l; i++)
+    {
+        m[i] = (int *)malloc(c * sizeof(int));
+        for (j = 0; j < c; j++)
+        {                
+            m[i][j] = 0; 
+        }
+    }
+    return m;
+}
+
 void iniciaPopulacao()
 {
     srand(time(NULL));
@@ -552,7 +580,7 @@ int main()
     }
     else
     {
-        printf("ta bom, tchau");
+        printf("ta bom, tchau\n");
     }
 
     printf("começar proxima geracao?1 - sim, 2 - nao\n");
@@ -563,19 +591,24 @@ int main()
         do
         {
             crossOver();
-            
-            if(geracaoAtual == numGeracoes){
+
+            if (geracaoAtual == numGeracoes)
+            {
                 break;
-            }else if(saida == 1){
+            }
+            else if (saida == 1)
+            {
                 break;
             }
         } while (saida == 0);
     }
     else
     {
-        printf("ta bom, tchau");
+        printf("ta bom, tchau\n");
     }
-    printf("geracao: %d", geracaoAtual);
+    printf("geracao: %d\n", geracaoAtual);
+
+    free(mapa);
 
     return 0;
 }
