@@ -1,4 +1,4 @@
-#include <stdlib.h>
+#include <stdlib.h> \\Raul esteve aqui
 #include <stdio.h>
 #include <time.h>
 
