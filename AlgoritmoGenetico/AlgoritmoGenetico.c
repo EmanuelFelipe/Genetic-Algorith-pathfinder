@@ -1,4 +1,4 @@
-#include <stdlib.h> \\Raul esteve aqui
+#include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
 
@@ -25,14 +25,12 @@ int individ1[80][numGeracoes],
 
 int coluna_atual = 1,
     linha_atual = 1,
-    coluna_anterior = 1,
-    linha_anterior = 1,
     linha, coluna;
 
 int key,
     passos;
 
-int **mapa;
+int mapa[20][30];
 
 void percurso(int x);
 void gera_mapa();
@@ -50,20 +48,12 @@ int **alocaMapa(int l, int c);
 
 void gera_mapa()
 {
-    int m, n, lnhia, coluna;
+    int m, n;
     srand(time(NULL));
 
-    printf("quantas linhas?\n");
-    scanf("%d", &linha);
-
-    printf("quantas colunas?\n");
-    scanf("%d", &coluna);
-
-    mapa = alocaMapa(linha, coluna);
-
-    for (m = 0; m < linha; m++)
+    for (m = 0; m < 20; m++)
     {
-        for (n = 0; n < coluna; n++)
+        for (n = 0; n < 30; n++)
         {
             if (mapa[m][n] == 0)
             {
@@ -78,17 +68,17 @@ void gera_mapa()
             mapa[0][n] = 3;
         }
     }
-    n = rand() % coluna;
-    m = rand() % linha;
+    n = rand() % 30;
+    m = rand() % 20;
     mapa[m][n] = 4;
 }
 
 int desenhar_mapa()
 {
     int linha1, coluna1;
-    for (linha1 = 0; linha1 < linha; linha1++)
+    for (linha1 = 0; linha1 < 20; linha1++)
     {
-        for (coluna1 = 0; coluna1 < coluna; coluna1++)
+        for (coluna1 = 0; coluna1 < 30; coluna1++)
         {
 
             if ((linha1 == linha_atual) && (coluna1 == coluna_atual))
@@ -108,23 +98,6 @@ int desenhar_mapa()
         printf("\n");
     }
     return 1;
-}
-
-int **alocaMapa(int l, int c)
-{
-    int i, j;
-
-    int **m = (int **)malloc(l * sizeof(int *));
-
-    for (i = 0; i < l; i++)
-    {
-        m[i] = (int *)malloc(c * sizeof(int));
-        for (j = 0; j < c; j++)
-        {                
-            m[i][j] = 0; 
-        }
-    }
-    return m;
 }
 
 void iniciaPopulacao()
@@ -607,8 +580,6 @@ int main()
         printf("ta bom, tchau\n");
     }
     printf("geracao: %d\n", geracaoAtual);
-
-    free(mapa);
 
     return 0;
 }
