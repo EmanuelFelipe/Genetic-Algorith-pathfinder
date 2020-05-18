@@ -7,13 +7,14 @@
 #define SAIDA 4
 #define inicio 2
 #define TETO 3
-#define numGeracoes 1000
+#define numGeracoes 5000
 
 float probMut = 0.1;
 float probCruz = 0.7;
 int parede = 0;
 int saida = 0;
 int geracaoAtual = 0;
+int s1, s2, melhor1, melhor2, melhor3, melhor4;
 
 int i = 0, j = 0, k = 0, l = 0;
 int vet[4];
@@ -45,6 +46,9 @@ int maiorGene();
 int roleta();
 int mutacao();
 int **alocaMapa(int l, int c);
+int fitness(int l, int c);
+int melhorIndivid();
+
 
 void gera_mapa()
 {
@@ -66,11 +70,14 @@ void gera_mapa()
                 }
             }
             mapa[0][n] = 3;
+            mapa[20][n] = 3;
+            mapa[m][0] = 1;
+            mapa[m][30] = 1;
         }
     }
-    n = rand() % 30;
-    m = rand() % 20;
-    mapa[m][n] = 4;
+    s1 = rand() % 30;
+    s2 = rand() % 20;
+    mapa[s2][s1] = 4;
 }
 
 int desenhar_mapa()
@@ -105,7 +112,7 @@ void iniciaPopulacao()
     srand(time(NULL));
     do
     {
-        individ1[i][geracaoAtual] = rand() % 3;
+        individ1[i][geracaoAtual] = rand() % 3 + 1;
         printf("\nindividuo 1\n");
         printf("crom: %d\n", individ1[i][geracaoAtual]);
         percurso(individ1[i][geracaoAtual]);
@@ -119,13 +126,14 @@ void iniciaPopulacao()
             break;
         }
     } while (i < 80);
+    melhor1 = fitness(linha_atual, coluna_atual);
     coluna_atual = 1;
     linha_atual = 1;
     parede = 0;
     saida = 0;
     do
     {
-        individ2[j][geracaoAtual] = rand() % 4;
+        individ2[j][geracaoAtual] = rand() % 3 + 1;
         printf("\nindividuo 2\n");
         printf("crom: %d\n", individ2[j][geracaoAtual]);
         percurso(individ2[j][geracaoAtual]);
@@ -140,13 +148,15 @@ void iniciaPopulacao()
             break;
         }
     } while (j < 80);
+
+    melhor2 = fitness(linha_atual, coluna_atual);
     coluna_atual = 1;
     linha_atual = 1;
     parede = 0;
     saida = 0;
     do
     {
-        individ3[k][geracaoAtual] = rand() % 4;
+        individ3[k][geracaoAtual] = rand() % 3;
         printf("\nindividuo 3\n");
         printf("crom: %d\n", individ3[k][geracaoAtual]);
         percurso(individ3[k][geracaoAtual]);
@@ -161,13 +171,16 @@ void iniciaPopulacao()
             break;
         }
     } while (k < 80);
+
+    melhor3 = fitness(linha_atual, coluna_atual);
     coluna_atual = 1;
     linha_atual = 1;
     parede = 0;
     saida = 0;
+
     do
     {
-        individ4[l][geracaoAtual] = rand() % 4;
+        individ4[l][geracaoAtual] = rand() % 3;
         printf("\nindividuo 4\n");
         printf("crom: %d\n", individ4[l][geracaoAtual]);
         percurso(individ4[l][geracaoAtual]);
@@ -182,6 +195,7 @@ void iniciaPopulacao()
             break;
         }
     } while (l < 80);
+    melhor4 = fitness(linha_atual, coluna_atual);
     //desenhar_mapa();
 }
 
@@ -219,207 +233,299 @@ void percurso(int opcao)
 void crossOver()
 {
     srand(time(NULL));
-    int x, escolha, aux, mutar;
+    int x, escolha, aux, mutar, jaEscolheu = 0;
     geracaoAtual++;
     parede = 0;
     saida = 0;
     coluna_atual = 1;
     linha_atual = 1;
-    int a = 0, b = 0;
+    int a = 0, b = 0, c = 0, d = 0;
     mutar = mutacao();
-
-    if (mutar == 1)
+    for (a = 0; a < maiorGene(); a++)
     {
-        do
+        if (mutar == 1)
         {
-            individ1[a][geracaoAtual] = rand() % 4;
-            printf("\nindividuo 1 ger %d\n", geracaoAtual + 1);
-            printf("crom: %d\n", individ1[i][geracaoAtual]);
-            percurso(individ1[i][geracaoAtual]);
-            a++;
-            if (saida == 1)
-            {
-                break;
-            }
-            else if (parede == 1)
-            {
-                break;
-            }
-        } while (a < 80);
-    }
-    else
-    {
-        do
+            x = rand() % 3;
+            individ1[a][geracaoAtual] = x;
+        }
+        else if (a == 0)
         {
-            if (a == 0)
+            escolha = melhorIndivid();
+            aux = escolha;
+            if (escolha == i)
+            {
+                individ1[a][geracaoAtual] = individ1[a][geracaoAtual - 1];
+            }
+            else if (escolha == j)
+            {
+                individ1[a][geracaoAtual] = individ2[a][geracaoAtual - 1];
+            }
+            else if (escolha == k)
+            {
+                individ1[a][geracaoAtual] = individ3[a][geracaoAtual - 1];
+            }
+            else if (escolha == l)
+            {
+                individ1[a][geracaoAtual] = individ4[a][geracaoAtual - 1];
+            }
+        }
+        else
+        {
+            if (escolha == aux && jaEscolheu == 0)
             {
                 escolha = rand() % 3;
-                aux = escolha;
-                if (escolha == 0)
-                {
-                    x = rand() % i;
-                    individ1[a][geracaoAtual] = individ1[x][geracaoAtual - 1];
-                }
-                else if (escolha == 1)
-                {
-                    x = rand() % j;
-                    individ1[a][geracaoAtual] = individ2[x][geracaoAtual - 1];
-                }
-                else if (escolha == 2)
-                {
-                    x = rand() % k;
-                    individ1[a][geracaoAtual] = individ3[x][geracaoAtual - 1];
-                }
-                else if (escolha == 3)
-                {
-                    x = rand() % l;
-                    individ1[a][geracaoAtual] = individ4[x][geracaoAtual - 1];
-                }
+                jaEscolheu = 1;
             }
-            else
+            if (escolha == 0)
             {
-                if (escolha == aux)
-                {
-                    escolha = rand() % 3;
-                }
-                if (escolha == 0)
-                {
-                    x = rand() % i;
-                    individ1[a][geracaoAtual] = individ1[x][geracaoAtual - 1];
-                }
-                else if (escolha == 1)
-                {
-                    x = rand() % j;
-                    individ1[a][geracaoAtual] = individ2[x][geracaoAtual - 1];
-                }
-                else if (escolha == 2)
-                {
-                    x = rand() % k;
-                    individ1[a][geracaoAtual] = individ3[x][geracaoAtual - 1];
-                }
-                else if (escolha == 3)
-                {
-                    x = rand() % l;
-                    individ1[a][geracaoAtual] = individ4[x][geracaoAtual - 1];
-                }
+                individ1[a][geracaoAtual] = individ1[a][geracaoAtual - 1];
             }
-            printf("\nindividuo 1 ger %d\n", geracaoAtual + 1);
-            printf("escolha %d\n", escolha);
-            printf("x %d\n", x);
-            printf("a %d\n", a);
-            percurso(individ1[a][geracaoAtual]);
-            if (saida == 1)
+            else if (escolha == 1)
             {
-                break;
+                individ1[a][geracaoAtual] = individ2[a][geracaoAtual - 1];
             }
-            else if (parede == 1)
+            else if (escolha == 2)
             {
-                break;
+                individ1[a][geracaoAtual] = individ3[a][geracaoAtual - 1];
             }
-            a++;
-        } while (a < 80);
+            else if (escolha == 3)
+            {
+                individ1[a][geracaoAtual] = individ4[a][geracaoAtual - 1];
+            }
+        }
+        printf("\nindividuo 1 ger %d\n", geracaoAtual + 1);
+        printf("escolha %d\n", escolha);
+        printf("x %d\n", x);
+        printf("a %d\n", a);
+        percurso(individ1[a][geracaoAtual]);
+        if (saida == 1)
+        {
+            break;
+        }
+        else if (parede == 1)
+        {
+            break;
+        }
     }
 
     parede = 0;
     saida = 0;
     coluna_atual = 1;
     linha_atual = 1;
+    jaEscolheu = 0;
     mutar = mutacao();
 
-    if (mutar == 1)
+    for (b = 0; b < maiorGene(); b++)
     {
-        do
+        if (mutar == 1)
         {
-            individ2[b][geracaoAtual] = rand() % 4;
-            printf("\nindividuo 2\n");
-            printf("crom: %d\n", individ2[b][geracaoAtual]);
-            percurso(individ2[b][geracaoAtual]);
-            b++;
-
-            if (saida == 1)
-            {
-                break;
-            }
-            else if (parede == 1)
-            {
-                break;
-            }
-        } while (b < 80);
-    }
-
-    else
-    {
-        for (b = 0; b < i; b++)
+            x = rand() % 3;
+            individ2[b][geracaoAtual] = x;
+        }
+        else if (b == 0)
         {
-            if (b == 0)
+            escolha = melhorIndivid();
+            aux = escolha;
+            if (escolha == i)
             {
-                escolha = rand() % 3;
-                aux = escolha;
-                if (escolha == 0)
-                {
-                    x = rand() % i;
-                    individ2[b][geracaoAtual] = individ1[x][geracaoAtual - 1];
-                }
-                else if (escolha == 1)
-                {
-                    x = rand() % j;
-                    individ2[b][geracaoAtual] = individ2[x][geracaoAtual - 1];
-                }
-                else if (escolha == 2)
-                {
-                    x = rand() % k;
-                    individ2[b][geracaoAtual] = individ3[x][geracaoAtual - 1];
-                }
-                else if (escolha == 3)
-                {
-                    x = rand() % l;
-                    individ2[b][geracaoAtual] = individ4[x][geracaoAtual - 1];
-                }
+                individ2[b][geracaoAtual] = individ1[b][geracaoAtual - 1];
             }
-            else
+            else if (escolha == j)
             {
-                do
-                {
-                    escolha = rand() % 3;
-                } while (escolha == aux);
-                if (maiorGene() == i)
-                {
-                    x = rand() % i;
-                    individ2[b][geracaoAtual] = individ1[x][geracaoAtual - 1];
-                }
-                else if (maiorGene() == j)
-                {
-                    x = rand() % j;
-                    individ2[b][geracaoAtual] = individ2[x][geracaoAtual - 1];
-                }
-                else if (maiorGene() == k)
-                {
-                    x = rand() % k;
-                    individ2[b][geracaoAtual] = individ3[x][geracaoAtual - 1];
-                }
-                else if (maiorGene() == l)
-                {
-                    x = rand() % l;
-                    individ2[b][geracaoAtual] = individ4[x][geracaoAtual - 1];
-                }
+                individ2[b][geracaoAtual] = individ2[b][geracaoAtual - 1];
             }
-            printf("\nindividuo 2 ger %d\n", geracaoAtual + 1);
-            printf("escolha %d\n", escolha);
-            printf("x %d\n", x);
-            printf("b %d\n", b);
-            percurso(individ1[b][geracaoAtual]);
-            if (saida == 1)
+            else if (escolha == k)
             {
-                break;
+                individ2[b][geracaoAtual] = individ3[b][geracaoAtual - 1];
             }
-            else if (parede == 1)
+            else if (escolha == l)
             {
-                break;
+                individ2[b][geracaoAtual] = individ4[b][geracaoAtual - 1];
             }
         }
+        else
+        {
+            if (escolha == aux)
+            {
+                escolha = rand() % 3;
+            }
+            if (escolha == 0)
+            {
+                individ2[b][geracaoAtual] = individ1[b][geracaoAtual - 1];
+            }
+            else if (escolha == 1)
+            {
+                individ2[b][geracaoAtual] = individ2[b][geracaoAtual - 1];
+            }
+            else if (escolha == 2)
+            {
+                individ2[b][geracaoAtual] = individ3[b][geracaoAtual - 1];
+            }
+            else if (escolha == 3)
+            {
+                individ2[b][geracaoAtual] = individ4[b][geracaoAtual - 1];
+            }
+        }
+        printf("\nindividuo 2 ger %d\n", geracaoAtual + 1);
+        printf("escolha %d\n", escolha);
+        printf("x %d\n", x);
+        printf("b %d\n", b);
+        percurso(individ2[b][geracaoAtual]);
+        if (saida == 1)
+        {
+            break;
+        }
+        else if (parede == 1)
+        {
+            break;
+        }
     }
-    printf("teste: %d", individ1[0][geracaoAtual]);
-    int mostra = 0;
+
+    parede = 0;
+    saida = 0;
+    coluna_atual = 1;
+    linha_atual = 1;
+    jaEscolheu = 0;
+    mutar = mutacao();
+
+    for (c = 0; c < maiorGene(); c++)
+    {
+        if (mutar == 1)
+        {
+            x = rand() % 3;
+            individ3[c][geracaoAtual] = x;
+        }
+        else if (c == 0)
+        {
+            escolha = melhorIndivid();
+            aux = escolha;
+            if (escolha == i)
+            {
+                individ3[c][geracaoAtual] = individ1[c][geracaoAtual - 1];
+            }
+            else if (escolha == j)
+            {
+                individ3[c][geracaoAtual] = individ2[c][geracaoAtual - 1];
+            }
+            else if (escolha == k)
+            {
+                individ3[c][geracaoAtual] = individ3[c][geracaoAtual - 1];
+            }
+            else if (escolha == l)
+            {
+                individ3[c][geracaoAtual] = individ4[c][geracaoAtual - 1];
+            }
+        }
+        else
+        {
+            if (escolha == aux)
+            {
+                escolha = rand() % 3;
+            }
+            if (escolha == 0)
+            {
+                individ3[c][geracaoAtual] = individ1[c][geracaoAtual - 1];
+            }
+            else if (escolha == 1)
+            {
+                individ3[c][geracaoAtual] = individ2[c][geracaoAtual - 1];
+            }
+            else if (escolha == 2)
+            {
+                individ3[c][geracaoAtual] = individ3[c][geracaoAtual - 1];
+            }
+            else if (escolha == 3)
+            {
+                individ3[c][geracaoAtual] = individ4[c][geracaoAtual - 1];
+            }
+        }
+        printf("\nindividuo 3 ger %d\n", geracaoAtual + 1);
+        printf("escolha %d\n", escolha);
+        printf("x %d\n", x);
+        printf("b %d\n", c);
+        percurso(individ3[c][geracaoAtual]);
+        if (saida == 1)
+        {
+            break;
+        }
+        else if (parede == 1)
+        {
+            break;
+        }
+    }
+
+    parede = 0;
+    saida = 0;
+    coluna_atual = 1;
+    linha_atual = 1;
+    jaEscolheu = 0;
+    mutar = mutacao();
+
+    for (d = 0; d < maiorGene(); d++)
+    {
+        if (mutar == 1)
+        {
+            x = rand() % 3;
+            individ4[d][geracaoAtual] = x;
+        }
+        else if (c == 0)
+        {
+            escolha = melhorIndivid();
+            aux = escolha;
+            if (escolha == i)
+            {
+                individ4[d][geracaoAtual] = individ1[d][geracaoAtual - 1];
+            }
+            else if (escolha == j)
+            {
+                individ4[d][geracaoAtual] = individ2[d][geracaoAtual - 1];
+            }
+            else if (escolha == k)
+            {
+                individ4[d][geracaoAtual] = individ3[d][geracaoAtual - 1];
+            }
+            else if (escolha == l)
+            {
+                individ4[d][geracaoAtual] = individ4[d][geracaoAtual - 1];
+            }
+        }
+        else
+        {
+            if (escolha == aux)
+            {
+                escolha = rand() % 3;
+            }
+            if (escolha == 0)
+            {
+                individ4[d][geracaoAtual] = individ1[d][geracaoAtual - 1];
+            }
+            else if (escolha == 1)
+            {
+                individ4[d][geracaoAtual] = individ2[d][geracaoAtual - 1];
+            }
+            else if (escolha == 2)
+            {
+                individ4[d][geracaoAtual] = individ3[d][geracaoAtual - 1];
+            }
+            else if (escolha == 3)
+            {
+                individ4[d][geracaoAtual] = individ4[d][geracaoAtual - 1];
+            }
+        }
+        printf("\nindividuo 4 ger %d\n", geracaoAtual + 1);
+        printf("escolha %d\n", escolha);
+        printf("x %d\n", x);
+        printf("b %d\n", b);
+        percurso(individ4[d][geracaoAtual]);
+        if (saida == 1)
+        {
+            break;
+        }
+        else if (parede == 1)
+        {
+            break;
+        }
+    }
 }
 
 int mutacao()
@@ -454,6 +560,15 @@ int roleta()
     // }
 }
 
+int fitness(int l, int c)
+{
+    int fit = 0;
+
+    fit = (s2 - l) + (s1 - c);
+
+    return fit;
+}
+
 int maiorGene()
 {
     if (i > j && i > k && i > l)
@@ -465,6 +580,26 @@ int maiorGene()
         return j;
     }
     else if (k > i && k > j && k > l)
+    {
+        return k;
+    }
+    else
+    {
+        return l;
+    }
+}
+
+int melhorIndivid()
+{
+    if (melhor1 < melhor2 && melhor1 < melhor3 && melhor1 < melhor4)
+    {
+        return i;
+    }
+    else if (melhor2 < melhor1 && melhor2 < melhor3 && melhor2 < melhor4)
+    {
+        return j;
+    }
+    else if (melhor3 < melhor1 && melhor3 < melhor2 && melhor3 < melhor4)
     {
         return k;
     }
