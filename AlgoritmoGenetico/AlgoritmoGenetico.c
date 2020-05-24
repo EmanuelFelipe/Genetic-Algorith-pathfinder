@@ -9,8 +9,6 @@
 #define TETO 3
 #define numGeracoes 5000
 
-float probMut = 0.1;
-float probCruz = 0.7;
 int parede = 0;
 int saida = 0;
 int geracaoAtual = 0;
@@ -48,7 +46,6 @@ int mutacao();
 int **alocaMapa(int l, int c);
 int fitness(int l, int c);
 int melhorIndivid();
-
 
 void gera_mapa()
 {
@@ -234,6 +231,7 @@ void crossOver()
 {
     srand(time(NULL));
     int x, escolha, aux, mutar, jaEscolheu = 0;
+    int melhorAux1, melhorAux2, melhorAux3, melhorAux4;
     geracaoAtual++;
     parede = 0;
     saida = 0;
@@ -241,16 +239,16 @@ void crossOver()
     linha_atual = 1;
     int a = 0, b = 0, c = 0, d = 0;
     mutar = mutacao();
-    for (a = 0; a < maiorGene(); a++)
+    for (a = 0; a < 100; a++)
     {
         if (mutar == 1)
         {
             x = rand() % 3;
             individ1[a][geracaoAtual] = x;
         }
-        else if (a == 0)
+        else if (a < roleta() / 2)
         {
-            escolha = melhorIndivid();
+            escolha = roleta();
             aux = escolha;
             if (escolha == i)
             {
@@ -269,13 +267,13 @@ void crossOver()
                 individ1[a][geracaoAtual] = individ4[a][geracaoAtual - 1];
             }
         }
-        else
+        if (escolha == aux && jaEscolheu == 0)
         {
-            if (escolha == aux && jaEscolheu == 0)
-            {
-                escolha = rand() % 3;
-                jaEscolheu = 1;
-            }
+            escolha = roleta();
+            jaEscolheu = 1;
+        }
+        else if (a > roleta() / 2)
+        {
             if (escolha == 0)
             {
                 individ1[a][geracaoAtual] = individ1[a][geracaoAtual - 1];
@@ -308,6 +306,7 @@ void crossOver()
         }
     }
 
+    melhorAux1 = fitness(linha_atual, coluna_atual);
     parede = 0;
     saida = 0;
     coluna_atual = 1;
@@ -315,16 +314,16 @@ void crossOver()
     jaEscolheu = 0;
     mutar = mutacao();
 
-    for (b = 0; b < maiorGene(); b++)
+    for (b = 0; b < 100; b++)
     {
+        escolha = roleta();
         if (mutar == 1)
         {
             x = rand() % 3;
             individ2[b][geracaoAtual] = x;
         }
-        else if (b == 0)
+        else if (b < escolha / 2)
         {
-            escolha = melhorIndivid();
             aux = escolha;
             if (escolha == i)
             {
@@ -343,12 +342,13 @@ void crossOver()
                 individ2[b][geracaoAtual] = individ4[b][geracaoAtual - 1];
             }
         }
-        else
+        if (escolha == aux && jaEscolheu == 0)
         {
-            if (escolha == aux)
-            {
-                escolha = rand() % 3;
-            }
+            escolha = roleta();
+            jaEscolheu = 1;
+        }
+        else if (a > escolha / 2)
+        {
             if (escolha == 0)
             {
                 individ2[b][geracaoAtual] = individ1[b][geracaoAtual - 1];
@@ -381,6 +381,8 @@ void crossOver()
         }
     }
 
+    melhorAux2 = fitness(linha_atual, coluna_atual);
+
     parede = 0;
     saida = 0;
     coluna_atual = 1;
@@ -388,16 +390,16 @@ void crossOver()
     jaEscolheu = 0;
     mutar = mutacao();
 
-    for (c = 0; c < maiorGene(); c++)
+    for (c = 0; c < 100; c++)
     {
+        escolha = roleta();
         if (mutar == 1)
         {
             x = rand() % 3;
             individ3[c][geracaoAtual] = x;
         }
-        else if (c == 0)
+        else if (c < escolha / 2)
         {
-            escolha = melhorIndivid();
             aux = escolha;
             if (escolha == i)
             {
@@ -416,12 +418,13 @@ void crossOver()
                 individ3[c][geracaoAtual] = individ4[c][geracaoAtual - 1];
             }
         }
-        else
+        if (escolha == aux && jaEscolheu == 0)
         {
-            if (escolha == aux)
-            {
-                escolha = rand() % 3;
-            }
+            escolha = roleta();
+            jaEscolheu = 1;
+        }
+        else if (c > escolha / 2)
+        {
             if (escolha == 0)
             {
                 individ3[c][geracaoAtual] = individ1[c][geracaoAtual - 1];
@@ -454,6 +457,8 @@ void crossOver()
         }
     }
 
+    melhorAux3 = fitness(linha_atual, coluna_atual);
+
     parede = 0;
     saida = 0;
     coluna_atual = 1;
@@ -461,16 +466,16 @@ void crossOver()
     jaEscolheu = 0;
     mutar = mutacao();
 
-    for (d = 0; d < maiorGene(); d++)
+    for (d = 0; d < 100; d++)
     {
+        escolha = roleta();
         if (mutar == 1)
         {
             x = rand() % 3;
             individ4[d][geracaoAtual] = x;
         }
-        else if (c == 0)
+        else if (d < escolha / 2)
         {
-            escolha = melhorIndivid();
             aux = escolha;
             if (escolha == i)
             {
@@ -489,12 +494,13 @@ void crossOver()
                 individ4[d][geracaoAtual] = individ4[d][geracaoAtual - 1];
             }
         }
-        else
+        if (escolha == aux && jaEscolheu == 0)
         {
-            if (escolha == aux)
-            {
-                escolha = rand() % 3;
-            }
+            escolha = roleta();
+            jaEscolheu = 1;
+        }
+        else if (d > escolha / 2)
+        {
             if (escolha == 0)
             {
                 individ4[d][geracaoAtual] = individ1[d][geracaoAtual - 1];
@@ -526,6 +532,12 @@ void crossOver()
             break;
         }
     }
+    melhorAux4 = fitness(linha_atual, coluna_atual);
+
+    melhor1 = melhorAux1;
+    melhor2 = melhorAux2;
+    melhor3 = melhorAux3;
+    melhor4 = melhorAux4;
 }
 
 int mutacao()
@@ -546,18 +558,57 @@ int mutacao()
 
 int roleta()
 {
-    int aleatorio, gene;
+    int aleatorio, primeiro, segundo, terceiro, quarto;
     srand(time(NULL));
 
     aleatorio = rand() % 100;
-    gene = maiorGene();
+    primeiro = melhorIndivid();
+    segundo = melhorIndivid();
+    terceiro = melhorIndivid();
+
+    if (segundo == melhor1)
+    {
+        if (melhor2 < melhor3 && melhor2 < melhor4)
+        {
+            segundo = melhor2;
+        }
+        else if (melhor3 < melhor2 && melhor3 < melhor4)
+        {
+            segundo = melhor3;
+        }
+        else if (melhor4 < melhor2 && melhor4 < melhor3)
+        {
+            segundo = melhor4;
+        }
+    }
+    else if (segundo == melhor2)
+    {
+        if (melhor1 < melhor3 && melhor1 < melhor4)
+        {
+            segundo = melhor2;
+        }
+        else if (melhor3 < melhor1 && melhor3 < melhor4)
+        {
+            segundo = melhor3;
+        }
+        else if (melhor4 < melhor1 && melhor4 < melhor3)
+        {
+            segundo = melhor4;
+        }
+    }
 
     if (aleatorio >= 60 && aleatorio <= 100)
     {
-        return gene;
-    } //else if(aleatorio >= 30 && aleatorio <= 59){
-    //     return
-    // }
+        return primeiro;
+    }
+    else if (aleatorio >= 30 && aleatorio <= 59)
+    {
+        return segundo;
+    }
+    else if (aleatorio >= 15 && aleatorio <= 29)
+    {
+        return terceiro;
+    }
 }
 
 int fitness(int l, int c)
