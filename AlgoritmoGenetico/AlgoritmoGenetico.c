@@ -110,7 +110,7 @@ void iniciaPopulacao()
     srand(time(NULL));
     do
     {
-        individ1[i][geracaoAtual] = rand() % 3 + 1;
+        individ1[i][geracaoAtual] = rand() % 3;
         printf("\nindividuo 1\n");
         printf("crom: %d\n", individ1[i][geracaoAtual]);
         percurso(individ1[i][geracaoAtual]);
@@ -131,7 +131,7 @@ void iniciaPopulacao()
     saida = 0;
     do
     {
-        individ2[j][geracaoAtual] = rand() % 3 + 1;
+        individ2[j][geracaoAtual] = rand() % 3;
         printf("\nindividuo 2\n");
         printf("crom: %d\n", individ2[j][geracaoAtual]);
         percurso(individ2[j][geracaoAtual]);
@@ -304,7 +304,7 @@ void crossOver()
     {
 
         printf("\nindividuo 1 ger %d\n", geracaoAtual + 1);
-        printf("escolha %d\n", escolha);
+        printf("distancia %d\n", escolha);
         printf("a %d\n", a);
         percurso(individ1[a][geracaoAtual]);
         if (saida == 1)
@@ -386,7 +386,7 @@ void crossOver()
     {
 
         printf("\nindividuo 2 ger %d\n", geracaoAtual + 1);
-        printf("escolha %d\n", escolha);
+        printf("distancia %d\n", escolha);
         printf("b %d\n", b);
         percurso(individ1[b][geracaoAtual]);
         if (saida == 1)
@@ -469,7 +469,7 @@ void crossOver()
     {
 
         printf("\nindividuo 3 ger %d\n", geracaoAtual + 1);
-        printf("escolha %d\n", escolha);
+        printf("distancia %d\n", escolha);
         printf("c %d\n", c);
         percurso(individ1[c][geracaoAtual]);
         if (saida == 1)
@@ -550,7 +550,7 @@ void crossOver()
     {
 
         printf("\nindividuo 4 ger %d\n", geracaoAtual + 1);
-        printf("escolha %d\n", escolha);
+        printf("distancia %d\n", escolha);
         printf("d %d\n", d);
         percurso(individ1[d][geracaoAtual]);
         if (saida == 1)
@@ -604,23 +604,23 @@ int roleta()
     int aleatorio, primeiro, segundo, terceiro, quarto;
     srand(time(NULL));
 
-    aleatorio = rand() % 10+1;
+    aleatorio = rand() % 10;
     primeiro = melhorIndivid(1);
     segundo = melhorIndivid(2);
     terceiro = melhorIndivid(3);
     quarto = melhorIndivid(4);
 
-    printf("%d", aleatorio);
+    aleatorio = aleatorio + 1;
 
     if (aleatorio >= 7 && aleatorio <= 11)
     {
         return primeiro;
     }
-    else if (aleatorio >=4  && aleatorio < 7)
+    else if (aleatorio >= 4 && aleatorio < 7)
     {
         return segundo;
     }
-    else if (aleatorio >=2  && aleatorio < 4)
+    else if (aleatorio >= 2 && aleatorio < 4)
     {
         return terceiro;
     }
@@ -670,8 +670,8 @@ int melhorIndivid(int choice)
         {
             if (vet[i] > vet[i + 1])
             {
-                aux = vet[i+1];
-                vet[i+1] = vet[i];
+                aux = vet[i + 1];
+                vet[i + 1] = vet[i];
                 vet[i] = aux;
             }
         }
@@ -685,11 +685,11 @@ int melhorIndivid(int choice)
     {
         return vet[1];
     }
-    else if(choice == 3)
+    else if (choice == 3)
     {
         return vet[2];
     }
-    else if(choice == 4)
+    else if (choice == 4)
     {
         return vet[3];
     }
@@ -785,6 +785,11 @@ int main()
         do
         {
             crossOver();
+
+            if (i == 1 && j == 1 && k == 1 && l == 1)
+            {
+                iniciaPopulacao();
+            }
 
             if (geracaoAtual == numGeracoes)
             {
