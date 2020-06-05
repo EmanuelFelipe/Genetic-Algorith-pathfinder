@@ -33,7 +33,7 @@ int mapa[20][30];
 void percurso(int opcao, int *parede, int *saida);
 void gera_mapa();
 int desenhar_mapa();
-void iniciaPopulacao(individuo **ind, int *parede, int *saida);
+void iniciaPopulacao(individuo **ind, int *parede, int *saida, long int *vet[1000]);
 void crossOver();
 void paraBaixo(int *parede, int *saida);
 void paraCima(int *parede, int *saida);
@@ -119,7 +119,7 @@ int desenhar_mapa()
     return 1;
 }
 
-void iniciaPopulacao(individuo **ind, int *parede, int *saida)
+void iniciaPopulacao(individuo **ind, int *parede, int *saida, long int *vet[1000])
 {
     int aux;
     srand(time(NULL));
@@ -130,7 +130,7 @@ void iniciaPopulacao(individuo **ind, int *parede, int *saida)
         individuo *ind_local = *ind;
 
         ind_local->genes[i] = rand() % 4;
-        //vet[i] = &ind_local;
+        vet[i] = &ind_local->genes;
         printf("crom: %d\n", ind_local->genes[i]);
         percurso(ind_local->genes[i], parede, saida);
 
@@ -145,7 +145,7 @@ void iniciaPopulacao(individuo **ind, int *parede, int *saida)
     }
     for (int y = 0; y < i; y++)
     {
-        //aux = melhorIndivid(vet[y], y);
+        aux = melhorIndivid(vet[y], y);
     }
     
     linha_atual = 1;
@@ -430,7 +430,7 @@ int main()
         do
         {
 
-            iniciaPopulacao(&ind, pontParede, pontSaida);
+            iniciaPopulacao(&ind, pontParede, pontSaida, &ind->fitness);
             vetInd[contador] = ind;
             printf("indviduo: %d \n", contador);
             if (saida == 1)
