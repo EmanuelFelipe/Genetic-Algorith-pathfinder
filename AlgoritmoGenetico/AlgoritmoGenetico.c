@@ -7,25 +7,19 @@
 #define SAIDA 4
 #define inicio 2
 #define TETO 3
+#define tampop 1000
 #define numGeracoes 5000
 
 typedef struct individuo
 {
-    int genes[1000];
+    long int genes[1000];
     int geracaoAtual;
+    int fitness;
 } individuo;
 
-int parede = 0;
-int saida = 0;
 int s1, s2, melhor1, melhor2, melhor3, melhor4;
 
 int i = 0, j = 0, k = 0, l = 0;
-int vet[4];
-
-int individ1[80][numGeracoes],
-    individ2[80][numGeracoes],
-    individ3[80][numGeracoes],
-    individ4[80][numGeracoes];
 
 int coluna_atual = 1,
     linha_atual = 1,
@@ -36,35 +30,35 @@ int key,
 
 int mapa[20][30];
 
-void percurso(int x);
+void percurso(int opcao, int *parede, int *saida);
 void gera_mapa();
 int desenhar_mapa();
-void iniciaPopulacao();
+void iniciaPopulacao(individuo **ind, int *parede, int *saida);
 void crossOver();
-void paraBaixo();
-void paraCima();
-void paraDireita();
-void paraEsquerda();
+void paraBaixo(int *parede, int *saida);
+void paraCima(int *parede, int *saida);
+void paraDireita(int *parede, int *saida);
+void paraEsquerda(int *parede, int *saida);
 int maiorGene();
 int roleta();
 int mutacao();
 int **alocaMapa(int l, int c);
 int fitness(int l, int c);
-int melhorIndivid(int choice);
+long int * melhorIndivid(long int * vet[1000], int choice);
 int ponto(int i);
+void quicksort(long int *vet, int ini, int final);
 
 individuo *cria_individuo()
 {
     individuo *indCriado = (individuo *)malloc(sizeof(individuo));
 
-    for (int i = 0; i <= 1000; i++)
+    for (int j = 0; j < 1000; j++)
     {
-        for (int j = 0; j <= 80; j++)
-        {
-            indCriado->genes[j] = -1;
-        }
-        indCriado->geracaoAtual = 0;
+        indCriado->genes[j] = -1;
     }
+    indCriado->geracaoAtual = 0;
+    indCriado->fitness = 0;
+
     return indCriado;
 }
 
@@ -125,51 +119,60 @@ int desenhar_mapa()
     return 1;
 }
 
-void iniciaPopulacao(individuo *ind)
+void iniciaPopulacao(individuo **ind, int *parede, int *saida)
 {
+    int aux;
     srand(time(NULL));
-    long int * vet[5000];
-    do
+    *ind = cria_individuo();
+    //individuo *vet = (individuo *)malloc(sizeof(individuo));
+    for (i = 0; i < 1000; i++)
     {
-        ind = cria_individuo();
-        ind->genes[i] = rand() % 3;
-        vet[i] = ind;
-        printf("\nindividuo 1\n");
-        printf("crom: %d\n", vet[i]);
-        percurso(ind->genes[i]);
-        i++;
-        if (saida == 1)
+        individuo *ind_local = *ind;
+
+        ind_local->genes[i] = rand() % 4;
+        //vet[i] = &ind_local;
+        printf("crom: %d\n", ind_local->genes[i]);
+        percurso(ind_local->genes[i], parede, saida);
+
+        if (*saida == 1)
         {
             break;
         }
-        else if (parede == 1)
+        else if (*parede == 1)
         {
             break;
         }
-    } while (i < 1000);
+    }
+    for (int y = 0; y < i; y++)
+    {
+        //aux = melhorIndivid(vet[y], y);
+    }
+    
+    linha_atual = 1;
+    coluna_atual = 1;
 }
 
-void percurso(int opcao)
+void percurso(int opcao, int *parede, int *saida)
 {
     switch (opcao)
     {
     case 0:
-        paraBaixo();
+        paraBaixo(parede, saida);
         system("clear");
         desenhar_mapa();
         break;
     case 1:
-        paraCima();
+        paraCima(parede, saida);
         system("clear");
         desenhar_mapa();
         break;
     case 2:
-        paraDireita();
+        paraDireita(parede, saida);
         system("clear");
         desenhar_mapa();
         break;
     case 3:
-        paraEsquerda();
+        paraEsquerda(parede, saida);
         system("clear");
         desenhar_mapa();
         break;
@@ -180,9 +183,29 @@ void percurso(int opcao)
     }
 }
 
-void crossOver()
+void crossOver(individuo **ind, int *parede, int *saida)
 {
     srand(time(NULL));
+    linha_atual = 1;
+    coluna_atual = 1;
+    individuo *ind_filho = cria_individuo();
+    for (i = 0; i < 1000; i++)
+    {
+
+        ind_filho->genes[i] = rand() % 4;
+        printf("\nindividuo %d\n", i);
+        printf("crom: %d\n", ind_filho->genes[i]);
+        percurso(ind_filho->genes[i], parede, saida);
+
+        if (*saida == 1)
+        {
+            break;
+        }
+        else if (*parede == 1)
+        {
+            break;
+        }
+    }
 }
 
 int mutacao()
@@ -219,10 +242,6 @@ int roleta()
     srand(time(NULL));
 
     aleatorio = rand() % 10;
-    primeiro = melhorIndivid(1);
-    segundo = melhorIndivid(2);
-    terceiro = melhorIndivid(3);
-    quarto = melhorIndivid(4);
 
     aleatorio = aleatorio + 1;
 
@@ -273,111 +292,127 @@ int maiorGene()
     }
 }
 
-int melhorIndivid(int choice)
+long int * melhorIndivid(long int * vet[1000], int cont)
 {
-    int vet[4] = {melhor1, melhor2, melhor3, melhor4};
-    int aux, def;
-    for (int i = 1; i < 4; i++)
-    {
+    
+    //quicksort(vet, 0, cont - 1);
 
-        for (int j = 0; j < 3; j++)
-        {
-            if (vet[i] > vet[i + 1])
-            {
-                aux = vet[i + 1];
-                vet[i + 1] = vet[i];
-                vet[i] = aux;
-            }
-        }
-    }
+    return *vet;
+}
 
-    if (choice == 1)
+// void quicksort(long int *vet, int ini, int final)
+// {
+//     int i, j, meio, aux;
+
+//     i = ini;
+//     j = final;
+//     meio = vet[(ini + final) / 2];
+
+//     do
+//     {
+//         while (vet[i] < meio)
+//             i++;
+
+//         while (vet[j] > meio)
+//             j--;
+
+//         if (i <= j)
+//         {
+//             aux = vet[i];
+//             vet[i] = vet[j];
+//             vet[j] = aux;
+//             i++;
+//             j--;
+//         }
+//     } while (i <= j);
+
+//     if (ini < j)
+//         quicksort(vet, ini, j);
+
+//     if (i < final)
+//         quicksort(vet, i, final);
+// }
+
+void paraBaixo(int *parede, int *saida)
+{
+    if (mapa[linha_atual + 1][coluna_atual] == PAREDE)
     {
-        return vet[0];
+        *parede = 1;
     }
-    else if (choice == 2)
+    else
     {
-        return vet[1];
+        linha_atual = 1 + linha_atual;
+        passos = passos + 1;
     }
-    else if (choice == 3)
+    if (mapa[linha_atual][coluna_atual] == SAIDA)
     {
-        return vet[2];
-    }
-    else if (choice == 4)
-    {
-        return vet[3];
+        *saida = 1;
     }
 }
 
-void paraBaixo()
+void paraCima(int *parede, int *saida)
 {
-    linha_atual = 1 + linha_atual; //TODO: verificar se nao é maior que o mapa, ou se esta passando algum limite;
-    passos = passos + 1;
-
-    if (mapa[linha_atual][coluna_atual] == PAREDE || mapa[linha_atual][coluna_atual] == TETO)
+    if (mapa[linha_atual - 1][coluna_atual] == PAREDE || mapa[linha_atual - 1][coluna_atual] == TETO)
     {
-        parede = 1;
-        linha_atual -= 1;
+        *parede = 1;
     }
-    else if (mapa[linha_atual][coluna_atual] == SAIDA)
+    else
     {
-        saida = 1;
+        linha_atual = linha_atual - 1;
+        passos = passos + 1;
+    }
+    if (mapa[linha_atual][coluna_atual] == SAIDA)
+    {
+        *saida = 1;
     }
 }
 
-void paraCima()
+void paraDireita(int *parede, int *saida)
 {
-    linha_atual = linha_atual - 1;
-    passos = passos + 1;
-
-    if (mapa[linha_atual][coluna_atual] == PAREDE || mapa[linha_atual][coluna_atual] == TETO)
+    if (mapa[linha_atual][coluna_atual + 1] == PAREDE || mapa[linha_atual][coluna_atual + 1] == TETO)
     {
-        parede = 1;
-        linha_atual = linha_atual + 1;
+        *parede = 1;
     }
-    else if (mapa[linha_atual][coluna_atual] == SAIDA)
+    else
     {
-        saida = 1;
-    }
-}
-
-void paraDireita()
-{
-    coluna_atual = coluna_atual + 1;
-    passos = passos + 1;
-
-    if (mapa[linha_atual][coluna_atual] == PAREDE || mapa[linha_atual][coluna_atual] == TETO)
-    {
-        parede = 1;
-        coluna_atual = coluna_atual - 1;
-    }
-    else if (mapa[linha_atual][coluna_atual] == SAIDA)
-    {
-        saida = 1;
-    }
-}
-
-void paraEsquerda()
-{
-    coluna_atual = coluna_atual - 1;
-    passos = passos + 1;
-
-    if (mapa[linha_atual][coluna_atual] == PAREDE || mapa[linha_atual][coluna_atual] == TETO)
-    {
-        parede = 1;
         coluna_atual = coluna_atual + 1;
+        passos = passos + 1;
     }
-    else if (mapa[linha_atual][coluna_atual] == SAIDA)
+    if (mapa[linha_atual][coluna_atual] == SAIDA)
     {
-        saida = 1;
+        *saida = 1;
+    }
+}
+
+void paraEsquerda(int *parede, int *saida)
+{
+    if (mapa[linha_atual][coluna_atual - 1] == PAREDE || mapa[linha_atual][coluna_atual - 1] == TETO)
+    {
+        *parede = 1;
+    }
+    else
+    {
+        coluna_atual = coluna_atual - 1;
+        passos = passos + 1;
+    }
+
+    if (mapa[linha_atual][coluna_atual] == SAIDA)
+    {
+        *saida = 1;
     }
 }
 
 int main()
 {
     individuo *ind;
-    long int *vetor_ind[5000];
+    individuo *vetInd[tampop];
     int pergunta, perg;
+    int parede = 0;
+    int saida = 0;
+    int contador = 0;
+    int *pontSaida = &saida;
+    int *pontParede = &parede;
+    long int *vet[1000];
     gera_mapa();
     desenhar_mapa();
 
@@ -395,14 +430,16 @@ int main()
         do
         {
 
-            iniciaPopulacao(ind);
-            
-
+            iniciaPopulacao(&ind, pontParede, pontSaida);
+            vetInd[contador] = ind;
+            printf("indviduo: %d \n", contador);
             if (saida == 1)
             {
                 break;
             }
-        } while (ind->geracaoAtual != 5000);
+            contador += 1;
+
+        } while (contador != tampop);
     }
     else
     {
@@ -411,13 +448,14 @@ int main()
 
     printf("começar proxima geracao?1 - sim, 2 - nao\n");
     scanf("%d", &pergunta);
+    contador = 0;
 
     if (pergunta == 1)
     {
         do
         {
-            crossOver();
-            if (ind->geracaoAtual == numGeracoes)
+            crossOver(&vetInd[contador], pontSaida, pontSaida);
+            if (contador == numGeracoes)
             {
                 break;
             }
@@ -425,6 +463,7 @@ int main()
             {
                 break;
             }
+            contador += 1;
         } while (saida == 0);
     }
     else
