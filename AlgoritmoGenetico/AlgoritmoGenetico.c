@@ -12,7 +12,7 @@
 
 typedef struct individuo
 {
-    long int genes[1000];
+    int genes[1000];
     int geracaoAtual;
     int fitness;
 } individuo;
@@ -33,7 +33,7 @@ int mapa[20][30];
 void percurso(int opcao, int *parede, int *saida);
 void gera_mapa();
 int desenhar_mapa();
-void iniciaPopulacao(individuo **ind, int *parede, int *saida, long int *vet[1000]);
+int iniciaPopulacao(individuo **ind, int *parede, int *saida);
 void crossOver();
 void paraBaixo(int *parede, int *saida);
 void paraCima(int *parede, int *saida);
@@ -44,9 +44,9 @@ int roleta();
 int mutacao();
 int **alocaMapa(int l, int c);
 int fitness(int l, int c);
-long int * melhorIndivid(long int * vet[1000], int choice);
+long int *melhorIndivid(individuo *vet[1000], int choice);
 int ponto(int i);
-void quicksort(long int *vet, int ini, int final);
+void quicksort(individuo *vet, int ini, int final);
 
 individuo *cria_individuo()
 {
@@ -119,18 +119,17 @@ int desenhar_mapa()
     return 1;
 }
 
-void iniciaPopulacao(individuo **ind, int *parede, int *saida, long int *vet[1000])
+int iniciaPopulacao(individuo **ind, int *parede, int *saida)
 {
-    int aux;
     srand(time(NULL));
+    int aux, somatorio;
     *ind = cria_individuo();
-    //individuo *vet = (individuo *)malloc(sizeof(individuo));
+
     for (i = 0; i < 1000; i++)
     {
         individuo *ind_local = *ind;
 
         ind_local->genes[i] = rand() % 4;
-        vet[i] = &ind_local->genes;
         printf("crom: %d\n", ind_local->genes[i]);
         percurso(ind_local->genes[i], parede, saida);
 
@@ -143,13 +142,13 @@ void iniciaPopulacao(individuo **ind, int *parede, int *saida, long int *vet[100
             break;
         }
     }
-    for (int y = 0; y < i; y++)
-    {
-        aux = melhorIndivid(vet[y], y);
-    }
-    
+
+    aux = fitness(linha_atual, coluna_atual);
+
     linha_atual = 1;
     coluna_atual = 1;
+
+    return aux;
 }
 
 void percurso(int opcao, int *parede, int *saida)
@@ -189,10 +188,12 @@ void crossOver(individuo **ind, int *parede, int *saida)
     linha_atual = 1;
     coluna_atual = 1;
     individuo *ind_filho = cria_individuo();
+    int x = 0;
+    
     for (i = 0; i < 1000; i++)
-    {
-
-        ind_filho->genes[i] = rand() % 4;
+    {   
+        x = rand() % 1000;
+        ind_filho->genes[i] = ind[x]->genes[i];
         printf("\nindividuo %d\n", i);
         printf("crom: %d\n", ind_filho->genes[i]);
         percurso(ind_filho->genes[i], parede, saida);
@@ -292,45 +293,14 @@ int maiorGene()
     }
 }
 
-long int * melhorIndivid(long int * vet[1000], int cont)
-{
-    
-    //quicksort(vet, 0, cont - 1);
+//long int *melhorIndivid(individuo *vet[1000], int cont)
+//{
 
-    return *vet;
-}
+//     for (int i = 0; i<cont; i++){
 
-// void quicksort(long int *vet, int ini, int final)
-// {
-//     int i, j, meio, aux;
+//     }
 
-//     i = ini;
-//     j = final;
-//     meio = vet[(ini + final) / 2];
-
-//     do
-//     {
-//         while (vet[i] < meio)
-//             i++;
-
-//         while (vet[j] > meio)
-//             j--;
-
-//         if (i <= j)
-//         {
-//             aux = vet[i];
-//             vet[i] = vet[j];
-//             vet[j] = aux;
-//             i++;
-//             j--;
-//         }
-//     } while (i <= j);
-
-//     if (ini < j)
-//         quicksort(vet, ini, j);
-
-//     if (i < final)
-//         quicksort(vet, i, final);
+//     return *vet;
 // }
 
 void paraBaixo(int *parede, int *saida)
@@ -412,14 +382,9 @@ int main()
     int contador = 0;
     int *pontSaida = &saida;
     int *pontParede = &parede;
-    long int *vet[1000];
+    int vet[1000];
     gera_mapa();
     desenhar_mapa();
-
-    // for (int p = 0; p <= 5000; p++)
-    // {
-    //     vetor_ind[p] = cria_individuo();
-    // }
 
     printf("começar labirinto?1 - sim, 2 - nao\n");
     scanf("%d", &pergunta);
@@ -430,7 +395,8 @@ int main()
         do
         {
 
-            iniciaPopulacao(&ind, pontParede, pontSaida, &ind->fitness);
+            vet[contador] = iniciaPopulacao(&ind, pontParede, pontSaida);
+            ind->fitness = vet[contador];
             vetInd[contador] = ind;
             printf("indviduo: %d \n", contador);
             if (saida == 1)
@@ -454,7 +420,7 @@ int main()
     {
         do
         {
-            crossOver(&vetInd[contador], pontSaida, pontSaida);
+            crossOver(&vetInd, pontSaida, pontSaida);
             if (contador == numGeracoes)
             {
                 break;
