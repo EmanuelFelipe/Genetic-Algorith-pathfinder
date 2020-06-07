@@ -7,12 +7,12 @@
 #define SAIDA 4
 #define inicio 2
 #define TETO 3
-#define tampop 1000
+#define tampop 100
 #define numGeracoes 5000
 
 typedef struct individuo
 {
-    int genes[1000];
+    int genes[500];
     int geracaoAtual;
     int fitness;
 } individuo;
@@ -82,9 +82,9 @@ void gera_mapa()
                 }
             }
             mapa[0][n] = 3;
-            mapa[20][n] = 3;
+            mapa[19][n] = 3;
             mapa[m][0] = 1;
-            mapa[m][30] = 1;
+            mapa[m][29] = 1;
         }
     }
     s1 = rand() % 30;
@@ -123,9 +123,11 @@ int iniciaPopulacao(individuo **ind, int *parede, int *saida)
 {
     srand(time(NULL));
     int aux, somatorio;
+    linha_atual = 1;
+    coluna_atual = 1;
     *ind = cria_individuo();
 
-    for (i = 0; i < 1000; i++)
+    for (i = 0; i < 500; i++)
     {
         individuo *ind_local = *ind;
 
@@ -137,16 +139,9 @@ int iniciaPopulacao(individuo **ind, int *parede, int *saida)
         {
             break;
         }
-        else if (*parede == 1)
-        {
-            break;
-        }
     }
 
     aux = fitness(linha_atual, coluna_atual);
-
-    linha_atual = 1;
-    coluna_atual = 1;
 
     return aux;
 }
@@ -189,11 +184,12 @@ void crossOver(individuo **ind, int *parede, int *saida)
     coluna_atual = 1;
     individuo *ind_filho = cria_individuo();
     int x = 0;
-    
-    for (i = 0; i < 1000; i++)
-    {   
-        x = rand() % 1000;
-        ind_filho->genes[i] = ind[x]->genes[i];
+
+    for (i = 0; i < 100; i++)
+    {
+        individuo *ind_local = *ind;
+        x = rand() % 100;
+        ind_filho->genes[i] = ind_local->genes[x];
         printf("\nindividuo %d\n", i);
         printf("crom: %d\n", ind_filho->genes[i]);
         percurso(ind_filho->genes[i], parede, saida);
@@ -305,7 +301,7 @@ int maiorGene()
 
 void paraBaixo(int *parede, int *saida)
 {
-    if (mapa[linha_atual + 1][coluna_atual] == PAREDE)
+    if (mapa[linha_atual + 1][coluna_atual] == PAREDE || mapa[linha_atual + 1][coluna_atual] == TETO)
     {
         *parede = 1;
     }
@@ -397,7 +393,6 @@ int main()
 
             vet[contador] = iniciaPopulacao(&ind, pontParede, pontSaida);
             ind->fitness = vet[contador];
-            vetInd[contador] = ind;
             printf("indviduo: %d \n", contador);
             if (saida == 1)
             {
@@ -405,36 +400,25 @@ int main()
             }
             contador += 1;
 
-        } while (contador != tampop);
-    }
-    else
-    {
-        printf("ta bom, tchau\n");
-    }
-
-    printf("começar proxima geracao?1 - sim, 2 - nao\n");
-    scanf("%d", &pergunta);
-    contador = 0;
-
-    if (pergunta == 1)
-    {
-        do
-        {
-            crossOver(&vetInd, pontSaida, pontSaida);
-            if (contador == numGeracoes)
-            {
-                break;
-            }
-            else if (saida == 1)
-            {
-                break;
-            }
-            contador += 1;
         } while (saida == 0);
-    }
-    else
-    {
-        printf("ta bom, tchau\n");
+        // if (saida == 1)
+        // {
+
+        //     do
+        //     {
+        //         vet[contador] = iniciaPopulacao(&ind, pontParede, pontSaida);
+        //         printf("indviduo: %d \n", contador);
+        //         if (contador == numGeracoes)
+        //         {
+        //             break;
+        //         }
+        //         else if (saida == 1)
+        //         {
+        //             break;
+        //         }
+        //         contador += 1;
+        //     } while (saida == 0);
+        // }
     }
 
     int remove = 0;
