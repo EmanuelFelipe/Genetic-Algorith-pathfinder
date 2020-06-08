@@ -177,7 +177,7 @@ void percurso(int opcao, int *parede, int *saida)
     }
 }
 
-void crossOver(individuo **ind, int *parede, int *saida)
+void crossOver(individuo **ind, int *parede, int *saida)//esse foi a função, onde os indviduos pegariam genes de individuos(podendo ou nao ser os melhores indviduos)
 {
     srand(time(NULL));
     linha_atual = 1;
@@ -401,6 +401,13 @@ int main()
             contador += 1;
 
         } while (saida == 0);
+
+        //tivemos alguns problemas com o crossover dos indiduos, 
+        //onde eles nao recebiam os valores corretos e os individuos nao conseguiam chegar ao objetivo;
+
+        //por isso desabilitamos ela para refazer os testes, ao longo do projeto tentamos resolver,
+        //mas nao conseguimos, e estamos fazendo o possivel para resolver a problematica;
+
         // if (saida == 1)
         // {
 
