@@ -7,7 +7,7 @@
 #define SAIDA 4
 #define inicio 2
 #define TETO 3
-#define tampop 100
+#define tampop 50
 #define numGeracoes 5000
 
 typedef struct individuo
@@ -52,7 +52,7 @@ individuo *cria_individuo()
 {
     individuo *indCriado = (individuo *)malloc(sizeof(individuo));
 
-    for (int j = 0; j < 1000; j++)
+    for (int j = 0; j < 500; j++)
     {
         indCriado->genes[j] = -1;
     }
@@ -177,7 +177,7 @@ void percurso(int opcao, int *parede, int *saida)
     }
 }
 
-void crossOver(individuo **ind, int *parede, int *saida)//esse foi a função, onde os indviduos pegariam genes de individuos(podendo ou nao ser os melhores indviduos)
+void crossOver(individuo **ind, int *parede, int *saida) //esse foi a função, onde os indviduos pegariam genes de individuos(podendo ou nao ser os melhores indviduos)
 {
     srand(time(NULL));
     linha_atual = 1;
@@ -185,11 +185,11 @@ void crossOver(individuo **ind, int *parede, int *saida)//esse foi a função, o
     individuo *ind_filho = cria_individuo();
     int x = 0;
 
-    for (i = 0; i < 100; i++)
+    for (i = 0; i < 500; i++)
     {
-        individuo *ind_local = *ind;
+        //individuo *ind_local = *ind;
         x = rand() % 100;
-        ind_filho->genes[i] = ind_local->genes[x];
+        ind_filho->genes[i] = ind[x]->genes[x];
         printf("\nindividuo %d\n", i);
         printf("crom: %d\n", ind_filho->genes[i]);
         percurso(ind_filho->genes[i], parede, saida);
@@ -371,7 +371,7 @@ void paraEsquerda(int *parede, int *saida)
 int main()
 {
     individuo *ind;
-    individuo *vetInd[tampop];
+    individuo *newInd[tampop];
     int pergunta, perg;
     int parede = 0;
     int saida = 0;
@@ -379,6 +379,7 @@ int main()
     int *pontSaida = &saida;
     int *pontParede = &parede;
     int vet[1000];
+    int geracao = 0;
     gera_mapa();
     desenhar_mapa();
 
@@ -393,8 +394,14 @@ int main()
 
             vet[contador] = iniciaPopulacao(&ind, pontParede, pontSaida);
             ind->fitness = vet[contador];
+            newInd[contador] = ind;
             printf("indviduo: %d \n", contador);
+            printf("Geracao: %d \n", geracao);
             if (saida == 1)
+            {
+                break;
+            }
+            if (contador == tampop)
             {
                 break;
             }
@@ -402,30 +409,33 @@ int main()
 
         } while (saida == 0);
 
-        //tivemos alguns problemas com o crossover dos indiduos, 
+        //tivemos alguns problemas com o crossover dos indiduos,
         //onde eles nao recebiam os valores corretos e os individuos nao conseguiam chegar ao objetivo;
 
         //por isso desabilitamos ela para refazer os testes, ao longo do projeto tentamos resolver,
         //mas nao conseguimos, e estamos fazendo o possivel para resolver a problematica;
 
-        // if (saida == 1)
-        // {
+        contador = 0;
+        if (saida == 0)
+        {
 
-        //     do
-        //     {
-        //         vet[contador] = iniciaPopulacao(&ind, pontParede, pontSaida);
-        //         printf("indviduo: %d \n", contador);
-        //         if (contador == numGeracoes)
-        //         {
-        //             break;
-        //         }
-        //         else if (saida == 1)
-        //         {
-        //             break;
-        //         }
-        //         contador += 1;
-        //     } while (saida == 0);
-        // }
+            do
+            {
+                crossOver(&newInd, pontParede, pontSaida);
+                printf("indviduo: %d \n", contador);
+                printf("Geracao: %d \n", geracao);
+                if (contador == numGeracoes)
+                {
+                    break;
+                }
+                else if (saida == 1)
+                {
+                    break;
+                }
+                contador += 1;
+                geracao += 1;
+            } while (saida == 0);
+        }
     }
 
     int remove = 0;
