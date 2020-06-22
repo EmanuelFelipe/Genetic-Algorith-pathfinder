@@ -32,21 +32,22 @@ int mapa[20][30];
 
 void percurso(int opcao, int *parede, int *saida);
 void gera_mapa();
-int desenhar_mapa();
-int iniciaPopulacao(individuo **ind, int *parede, int *saida);
-void crossOver();
 void paraBaixo(int *parede, int *saida);
+void crossOver();
 void paraCima(int *parede, int *saida);
 void paraDireita(int *parede, int *saida);
 void paraEsquerda(int *parede, int *saida);
+void limpar_labirinto();
+void quicksort(individuo *vet, int ini, int final);
+int desenhar_mapa();
+int iniciaPopulacao(individuo **ind, int *parede, int *saida);
 int maiorGene();
 int roleta();
 int mutacao();
 int **alocaMapa(int l, int c);
 int fitness(int l, int c);
-long int *melhorIndivid(individuo *vet[1000], int choice);
 int ponto(int i);
-void quicksort(individuo *vet, int ini, int final);
+long int *melhorIndivid(individuo *vet[1000], int choice);
 
 individuo *cria_individuo()
 {
@@ -60,6 +61,28 @@ individuo *cria_individuo()
     indCriado->fitness = 0;
 
     return indCriado;
+}
+
+void limpar_labirinto(){
+    int m, n;
+    int linha1, coluna1;
+
+    for (m = 0; m < 20; m++)
+    {
+        for (n = 0; n < 30; n++)
+        {
+                mapa[m][n] = 0;
+        }
+    }
+    for (linha1 = 0; linha1 < 20; linha1++)
+    {
+        for (coluna1 = 0; coluna1 < 30; coluna1++)
+        {
+            if (mapa[linha1][coluna1] == CHAO)
+                printf(" ");
+        }
+        printf("\n");
+    }
 }
 
 void gera_mapa()
@@ -389,13 +412,14 @@ int main()
         printf("1 - gerar labirinto\n");
         printf("2 - começar labirinto\n");
         printf("3 - repetir individuo final\n");
-        printf("4 - free individuos");
+        printf("4 - free individuos\n");
+        printf("5 - limpar labirinto\n");
         scanf("%d", &perg);
 
         switch (perg)
         {
         case 0:
-            printf("saindo do programa");
+            printf("saindo do programa\n");
             break;
 
         case 1:
@@ -427,7 +451,7 @@ int main()
             {
                 do
                 {
-                    crossOver(&newInd, pontParede, pontSaida);
+                    crossOver(&ind, pontParede, pontSaida);
                     printf("indviduo: %d \n", contador);
                     printf("Geracao: %d \n", geracao);
                     if (contador == numGeracoes)
@@ -468,6 +492,10 @@ int main()
             break;
         case 4:
             free(ind);
+            break;
+        case 5:
+            limpar_labirinto();
+            system("clear");
             break;
         default:
             printf("Digite uma opção valida\n");
