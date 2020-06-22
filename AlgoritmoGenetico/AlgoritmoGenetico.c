@@ -155,7 +155,7 @@ int iniciaPopulacao(individuo **ind, int *parede, int *saida)
         individuo *ind_local = *ind;
 
         ind_local->genes[i] = rand() % 4;
-        printf("crom: %d\n", ind_local->genes[i]);
+        //printf("crom: %d\n", ind_local->genes[i]);
         percurso(ind_local->genes[i], parede, saida);
 
         if (*saida == 1)
@@ -214,7 +214,7 @@ void crossOver(individuo **ind, int *parede, int *saida) //esse foi a função, 
         x = rand() % 100;
         ind_filho->genes[i] = ind[x]->genes[x];
         printf("\nindividuo %d\n", i);
-        printf("crom: %d\n", ind_filho->genes[i]);
+        //printf("crom: %d\n", ind_filho->genes[i]);
         percurso(ind_filho->genes[i], parede, saida);
 
         if (*saida == 1)
@@ -258,7 +258,7 @@ int ponto(int i)
 int roleta()
 {
     // escolhe aleatoriamente um indviduo, entre 1º, 2º, 3º e 4º;
-    int aleatorio, primeiro, segundo, terceiro, quarto;
+    int aleatorio, primeiro = 1, segundo = 2, terceiro = 3, quarto = 4;
     srand(time(NULL));
 
     aleatorio = rand() % 10;
@@ -434,7 +434,7 @@ int main()
                 ind->fitness = vet[contador];
                 newInd[contador] = ind;
                 printf("indviduo: %d \n", contador + 1);
-                printf("Geracao: %d \n", geracao);
+                printf("Geracao: %d \n", geracao + 1);
                 if (saida == 1)
                 {
                     break;
@@ -453,7 +453,7 @@ int main()
                 {
                     crossOver(&ind, pontParede, pontSaida);
                     printf("indviduo: %d \n", contador);
-                    printf("Geracao: %d \n", geracao);
+                    printf("Geracao: %d \n", geracao + 1);
                     if (contador == numGeracoes)
                     {
                         break;
