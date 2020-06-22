@@ -376,77 +376,188 @@ int main()
     int parede = 0;
     int saida = 0;
     int contador = 0;
+    int repete = 0;
     int *pontSaida = &saida;
     int *pontParede = &parede;
     int vet[1000];
     int geracao = 0;
-    gera_mapa();
-    desenhar_mapa();
 
-    printf("começar labirinto?1 - sim, 2 - nao\n");
-    scanf("%d", &pergunta);
-
-    if (pergunta == 1)
+    do
     {
+        printf("Digite sua opcao\n");
+        printf("0 - sair\n");
+        printf("1 - gerar labirinto\n");
+        printf("2 - começar labirinto\n");
+        printf("3 - repetir individuo final\n");
+        printf("4 - free individuos");
+        scanf("%d", &perg);
 
-        do
+        switch (perg)
         {
+        case 0:
+            printf("saindo do programa");
+            break;
 
-            vet[contador] = iniciaPopulacao(&ind, pontParede, pontSaida);
-            ind->fitness = vet[contador];
-            newInd[contador] = ind;
-            printf("indviduo: %d \n", contador);
-            printf("Geracao: %d \n", geracao);
-            if (saida == 1)
-            {
-                break;
-            }
-            if (contador == tampop)
-            {
-                break;
-            }
-            contador += 1;
-
-        } while (saida == 0);
-
-        //tivemos alguns problemas com o crossover dos indiduos,
-        //onde eles nao recebiam os valores corretos e os individuos nao conseguiam chegar ao objetivo;
-
-        //por isso desabilitamos ela para refazer os testes, ao longo do projeto tentamos resolver,
-        //mas nao conseguimos, e estamos fazendo o possivel para resolver a problematica;
-
-        contador = 0;
-        if (saida == 0)
-        {
-
+        case 1:
+            gera_mapa();
+            desenhar_mapa();
+            break;
+        case 2:
             do
             {
-                crossOver(&newInd, pontParede, pontSaida);
-                printf("indviduo: %d \n", contador);
+
+                vet[contador] = iniciaPopulacao(&ind, pontParede, pontSaida);
+                ind->fitness = vet[contador];
+                newInd[contador] = ind;
+                printf("indviduo: %d \n", contador + 1);
                 printf("Geracao: %d \n", geracao);
-                if (contador == numGeracoes)
+                if (saida == 1)
                 {
                     break;
                 }
-                else if (saida == 1)
+                if (contador == tampop)
                 {
                     break;
                 }
                 contador += 1;
-                geracao += 1;
+                repete = contador;
             } while (saida == 0);
+
+            if (saida == 0)
+            {
+                do
+                {
+                    crossOver(&newInd, pontParede, pontSaida);
+                    printf("indviduo: %d \n", contador);
+                    printf("Geracao: %d \n", geracao);
+                    if (contador == numGeracoes)
+                    {
+                        break;
+                    }
+                    else if (saida == 1)
+                    {
+                        break;
+                    }
+                    contador += 1;
+                    geracao += 1;
+                } while (saida == 0);
+            }
+            break;
+
+        case 3:
+            printf("repetir ultimo?\n");
+            scanf("%d", &perg);
+
+            *pontSaida = 0;
+            linha_atual = 1;
+            coluna_atual = 1;
+
+            if (perg == 1)
+            {
+
+                for (int i = 0; i < 500; i++)
+                {
+                    percurso(ind->genes[i], pontParede, pontSaida);
+
+                    if (saida == 1)
+                    {
+                        break;
+                    }
+                }
+            }
+            break;
+        case 4:
+            free(ind);
+            break;
+        default:
+            printf("Digite uma opção valida\n");
+            break;
         }
-    }
+    } while (perg != 0);
 
-    int remove = 0;
+    // if (pergunta == 1)
+    // {
 
-    printf("apagar?1 - sim, 2 - nao\n");
-    scanf("%d", &remove);
+    //     do
+    //     {
 
-    if (remove == 1)
-    {
-        free(ind);
-    }
+    //         vet[contador] = iniciaPopulacao(&ind, pontParede, pontSaida);
+    //         ind->fitness = vet[contador];
+    //         newInd[contador] = ind;
+    //         printf("indviduo: %d \n", contador + 1);
+    //         printf("Geracao: %d \n", geracao);
+    //         if (saida == 1)
+    //         {
+    //             break;
+    //         }
+    //         if (contador == tampop)
+    //         {
+    //             break;
+    //         }
+    //         contador += 1;
+    //         repete = contador;
+
+    //     } while (saida == 0);
+
+    //     //tivemos alguns problemas com o crossover dos indiduos,
+    //     //onde eles nao recebiam os valores corretos e os individuos nao conseguiam chegar ao objetivo;
+
+    //     //por isso desabilitamos ela para refazer os testes, ao longo do projeto tentamos resolver,
+    //     //mas nao conseguimos, e estamos fazendo o possivel para resolver a problematica;
+
+    //     contador = 0;
+    //     if (saida == 0)
+    //     {
+
+    //         do
+    //         {
+    //             crossOver(&newInd, pontParede, pontSaida);
+    //             printf("indviduo: %d \n", contador);
+    //             printf("Geracao: %d \n", geracao);
+    //             if (contador == numGeracoes)
+    //             {
+    //                 break;
+    //             }
+    //             else if (saida == 1)
+    //             {
+    //                 break;
+    //             }
+    //             contador += 1;
+    //             geracao += 1;
+    //         } while (saida == 0);
+    //     }
+    // }
+
+    // printf("repetir ultimo?\n");
+    // scanf("%d", &perg);
+
+    // *pontSaida = 0;
+    // linha_atual = 1;
+    // coluna_atual = 1;
+
+    // if (perg == 1)
+    // {
+
+    //     for (int i = 0; i < 500; i++)
+    //     {
+    //         percurso(ind->genes[i], pontParede, pontSaida);
+
+    //         if (saida == 1)
+    //         {
+    //             break;
+    //         }
+    //     }
+    // }
+
+    // int remove = 0;
+
+    // printf("apagar?1 - sim, 2 - nao\n");
+    // scanf("%d", &remove);
+
+    // if (remove == 1)
+    // {
+    //     free(ind);
+    // }
 
     return 0;
 }
