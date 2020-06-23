@@ -423,10 +423,12 @@ int main()
             break;
 
         case 1:
+            system("clear");
             gera_mapa();
             desenhar_mapa();
             break;
         case 2:
+            system("clear");
             do
             {
 
@@ -492,6 +494,7 @@ int main()
             break;
         case 4:
             free(ind);
+            system("clear");
             break;
         case 5:
             limpar_labirinto();
