@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <time.h>
+#include <math.h>
 
 #define CHAO 0
 #define PAREDE 1
@@ -12,58 +13,61 @@
 
 typedef struct individuo
 {
-    int genes[500];
-    int geracaoAtual;
-    int fitness;
+    int genes[50];
+    float fitness;
+    int ordem;
+    int posicaoFinal[2];
 } individuo;
+
+typedef struct populacao
+{
+    int geracao;
+    individuo *inds[50];
+} populacao;
 
 int s1, s2, melhor1, melhor2, melhor3, melhor4;
 
-int i = 0, j = 0, k = 0, l = 0;
-
-int coluna_atual = 1,
-    linha_atual = 1,
-    linha, coluna;
-
-int key,
-    passos;
+int linha, coluna;
 
 int mapa[20][30];
 
-void percurso(int opcao, int *parede, int *saida);
+individuo *crossOver(individuo **ind, int *parede, int *saida);
+individuo *iniciaPopulacao(int *parede, int *saida);
+void percurso(individuo *ind);
 void gera_mapa();
-void paraBaixo(int *parede, int *saida);
-void crossOver();
-void paraCima(int *parede, int *saida);
-void paraDireita(int *parede, int *saida);
-void paraEsquerda(int *parede, int *saida);
+void quicksort(individuo *vet[1000], int ini, int final);
 void limpar_labirinto();
-void quicksort(individuo *vet, int ini, int final);
+void movimenta(int movimento, int *linha, int *coluna);
+int paraBaixo(int *parede, int *saida);
+int paraCima(int *parede, int *saida);
+int paraDireita(int *parede, int *saida);
+int paraEsquerda(int *parede, int *saida);
 int desenhar_mapa();
-int iniciaPopulacao(individuo **ind, int *parede, int *saida);
 int maiorGene();
 int roleta();
 int mutacao();
 int **alocaMapa(int l, int c);
-int fitness(int l, int c);
+float fitness(int l, int c);
 int ponto(int i);
-long int *melhorIndivid(individuo *vet[1000], int choice);
 
 individuo *cria_individuo()
 {
     individuo *indCriado = (individuo *)malloc(sizeof(individuo));
 
-    for (int j = 0; j < 500; j++)
+    for (int j = 0; j < 50; j++)
     {
         indCriado->genes[j] = -1;
     }
-    indCriado->geracaoAtual = 0;
     indCriado->fitness = 0;
+    indCriado->ordem = 0;
+    indCriado->posicaoFinal[0] = 1;
+    indCriado->posicaoFinal[1] = 1;
 
     return indCriado;
 }
 
-void limpar_labirinto(){
+void limpar_labirinto()
+{
     int m, n;
     int linha1, coluna1;
 
@@ -71,7 +75,7 @@ void limpar_labirinto(){
     {
         for (n = 0; n < 30; n++)
         {
-                mapa[m][n] = 0;
+            mapa[m][n] = 0;
         }
     }
     for (linha1 = 0; linha1 < 20; linha1++)
@@ -115,7 +119,7 @@ void gera_mapa()
     mapa[s2][s1] = 4;
 }
 
-int desenhar_mapa()
+int desenhar_mapa(int linha_atual, int coluna_atual)
 {
     int linha1, coluna1;
     for (linha1 = 0; linha1 < 20; linha1++)
@@ -142,90 +146,143 @@ int desenhar_mapa()
     return 1;
 }
 
-int iniciaPopulacao(individuo **ind, int *parede, int *saida)
+individuo *iniciaPopulacao(int *parede, int *saida)
 {
     srand(time(NULL));
     int aux, somatorio;
-    linha_atual = 1;
-    coluna_atual = 1;
-    *ind = cria_individuo();
+    int linha_atual = 1;
+    int coluna_atual = 1;
+    individuo *ind_local = cria_individuo();
 
-    for (i = 0; i < 500; i++)
+    for (int i = 0; i < 50; i++)
     {
-        individuo *ind_local = *ind;
 
         ind_local->genes[i] = rand() % 4;
         //printf("crom: %d\n", ind_local->genes[i]);
-        percurso(ind_local->genes[i], parede, saida);
+        // percurso(ind_local->genes[i], parede, saida);
 
-        if (*saida == 1)
-        {
-            break;
-        }
+        movimenta(ind_local->genes[i], &linha_atual, &coluna_atual);
+
+        // switch (ind_local->genes[i])
+        // {
+        // case 0:
+        //     linha_atual += paraBaixo(linha_atual, coluna_atual);
+        //     break;
+        // case 1:
+        //     linha_atual -= paraCima(linha_atual, coluna_atual);
+        //     break;
+        // case 2:
+        //     coluna_atual += paraDireita(linha_atual, coluna_atual);
+        //     break;
+        // case 3:
+        //     coluna_atual -= paraEsquerda(linha_atual, coluna_atual);
+        //     break;
+        // }
     }
-
-    aux = fitness(linha_atual, coluna_atual);
-
-    return aux;
+    
+    ind_local->fitness = fitness(linha_atual, coluna_atual);
+    return ind_local;
 }
 
-void percurso(int opcao, int *parede, int *saida)
+void movimenta(int movimento, int *linha, int *coluna)
 {
-    switch (opcao)
+    int linhaMovimento = *linha;
+    int colunaMovimento = *coluna;
+    int posicao;
+
+    switch (movimento)
     {
     case 0:
-        paraBaixo(parede, saida);
-        system("clear");
-        desenhar_mapa();
+        linhaMovimento += 1;
         break;
     case 1:
-        paraCima(parede, saida);
-        system("clear");
-        desenhar_mapa();
+        linhaMovimento -= 1;
         break;
     case 2:
-        paraDireita(parede, saida);
-        system("clear");
-        desenhar_mapa();
+        colunaMovimento += 1;
         break;
     case 3:
-        paraEsquerda(parede, saida);
-        system("clear");
-        desenhar_mapa();
+        colunaMovimento -= 1;
         break;
+    }
 
-    default:
-        printf("\nopção invalida");
-        break;
+    posicao = mapa[linhaMovimento][colunaMovimento];
+
+    if (posicao != PAREDE && posicao != TETO)
+    {
+        *linha = linhaMovimento;
+        *coluna = colunaMovimento;
     }
 }
 
-void crossOver(individuo **ind, int *parede, int *saida) //esse foi a função, onde os indviduos pegariam genes de individuos(podendo ou nao ser os melhores indviduos)
+void percurso(individuo *ind)
+{
+    int linha_atual = 1;
+    int coluna_atual = 1;
+    int i;
+
+    for (i = 0; i < 50; i++)
+    {
+        system("clear");
+        desenhar_mapa(linha_atual, coluna_atual);
+        movimenta(ind->genes[i], &linha_atual, &coluna_atual);
+    }
+}
+
+individuo *crossOver(individuo **ind, int *parede, int *saida) //esse foi a função, onde os indviduos pegariam genes de individuos(podendo ou nao ser os melhores indviduos)
 {
     srand(time(NULL));
-    linha_atual = 1;
-    coluna_atual = 1;
     individuo *ind_filho = cria_individuo();
-    int x = 0;
+    int linha_atual = 1;
+    int coluna_atual = 1;
+    int x, y, z, mutar = 0;
+    x = ponto(50);
+    y = roleta();
+    z = roleta();
+    mutar = mutacao();
 
-    for (i = 0; i < 500; i++)
+    for (int i = 0; i < 50; i++)
     {
-        //individuo *ind_local = *ind;
-        x = rand() % 100;
-        ind_filho->genes[i] = ind[x]->genes[x];
-        printf("\nindividuo %d\n", i);
-        //printf("crom: %d\n", ind_filho->genes[i]);
-        percurso(ind_filho->genes[i], parede, saida);
+        if (i <= x)
+        {
+            ind_filho->genes[i] = ind[y]->genes[i];
+        }
+        if (i > x)
+        {
+            ind_filho->genes[i] = ind[z]->genes[i];
+        }
 
-        if (*saida == 1)
-        {
-            break;
-        }
-        else if (*parede == 1)
-        {
-            break;
-        }
+        movimenta(ind_filho->genes[i], &linha_atual, &coluna_atual);
+
+        //percurso(ind_filho->genes[i], parede, saida);
+
+        // if (*saida == 1)
+        // {
+        //     break;
+        // }
+        // switch (ind_filho->genes[i])
+        // {
+        // case 0:
+        //     ind_filho->posicaoFinal[1] += paraBaixo(&linha_atual, &coluna_atual);
+        //     break;
+        // case 1:
+        //     ind_filho->posicaoFinal[1] -= paraCima(&linha_atual, &coluna_atual);
+        //     break;
+        // case 2:
+        //     ind_filho->posicaoFinal[0] += paraDireita(&linha_atual, &coluna_atual);
+        //     break;
+        // case 3:
+        //     ind_filho->posicaoFinal[0] -= paraEsquerda(&linha_atual, &coluna_atual);
+        //     break;
+        // }
     }
+    if (mutar == 1)
+    {
+        ind_filho->genes[ponto(50)] = rand() % 4;
+    }
+    ind_filho->fitness = fitness(linha_atual, coluna_atual);
+
+    return ind_filho;
 }
 
 int mutacao()
@@ -257,144 +314,168 @@ int ponto(int i)
 
 int roleta()
 {
-    // escolhe aleatoriamente um indviduo, entre 1º, 2º, 3º e 4º;
-    int aleatorio, primeiro = 1, segundo = 2, terceiro = 3, quarto = 4;
     srand(time(NULL));
+    // escolhe aleatoriamente um indviduo, entre 1º, 2º, 3º e 4º;
+    int aleatorio, primeiro = rand() % 5, segundo = (rand() % 5) + 5;
 
     aleatorio = rand() % 10;
 
     aleatorio = aleatorio + 1;
 
-    if (aleatorio >= 7 && aleatorio <= 11)
+    if (aleatorio >= 4 && aleatorio <= 11)
     {
         return primeiro;
     }
-    else if (aleatorio >= 4 && aleatorio < 7)
+    else if (aleatorio >= 1 && aleatorio <= 3)
     {
         return segundo;
     }
-    else if (aleatorio >= 2 && aleatorio < 4)
-    {
-        return terceiro;
-    }
-    else if (aleatorio >= 1 && aleatorio < 2)
-    {
-        return quarto;
-    }
 }
 
-int fitness(int l, int c)
+float fitness(int l, int c)
 {
-    int fit = 0;
 
-    fit = (s2 - l) + (s1 - c);
-
-    return fit;
+    return sqrt(pow(s2 - l, 2) + pow(s1 - c, 2));
 }
 
-int maiorGene()
-{
-    if (i > j && i > k && i > l)
-    {
-        return i;
-    }
-    else if (j > i && j > k && j > l)
-    {
-        return j;
-    }
-    else if (k > i && k > j && k > l)
-    {
-        return k;
-    }
-    else
-    {
-        return l;
-    }
-}
-
-//long int *melhorIndivid(individuo *vet[1000], int cont)
-//{
-
-//     for (int i = 0; i<cont; i++){
-
+// int maiorGene()
+// {
+//     if (i > j && i > k && i > l)
+//     {
+//         return i;
 //     }
-
-//     return *vet;
+//     else if (j > i && j > k && j > l)
+//     {
+//         return j;
+//     }
+//     else if (k > i && k > j && k > l)
+//     {
+//         return k;
+//     }
+//     else
+//     {
+//         return l;
+//     }
 // }
 
-void paraBaixo(int *parede, int *saida)
+void quicksort(individuo **vet, int ini, int final)
 {
-    if (mapa[linha_atual + 1][coluna_atual] == PAREDE || mapa[linha_atual + 1][coluna_atual] == TETO)
+    int i, j;
+    float meio;
+    individuo *aux;
+
+    i = ini;
+    j = final;
+    meio = vet[(ini + final) / 2]->fitness;
+
+    do
     {
-        *parede = 1;
-    }
-    else
-    {
-        linha_atual = 1 + linha_atual;
-        passos = passos + 1;
-    }
-    if (mapa[linha_atual][coluna_atual] == SAIDA)
-    {
-        *saida = 1;
-    }
+        while (vet[i]->fitness < meio)
+            i++;
+
+        while (vet[j]->fitness > meio)
+            j--;
+
+        if (i <= j)
+        {
+            aux = vet[i];
+            vet[i] = vet[j];
+            vet[j] = aux;
+            i++;
+            j--;
+        }
+    } while (i <= j);
+
+    if (ini < j)
+        quicksort(vet, ini, j);
+
+    if (i < final)
+        quicksort(vet, i, final);
 }
 
-void paraCima(int *parede, int *saida)
-{
-    if (mapa[linha_atual - 1][coluna_atual] == PAREDE || mapa[linha_atual - 1][coluna_atual] == TETO)
-    {
-        *parede = 1;
-    }
-    else
-    {
-        linha_atual = linha_atual - 1;
-        passos = passos + 1;
-    }
-    if (mapa[linha_atual][coluna_atual] == SAIDA)
-    {
-        *saida = 1;
-    }
-}
+// int paraBaixo(int *parede, int *saida)
+// {
+//     if (mapa[linha_atual + 1][coluna_atual] == PAREDE || mapa[linha_atual + 1][coluna_atual] == TETO)
+//     {
+//         *parede = 1;
+//         return 0;
+//     }
+//     else
+//     {
+//         linha_atual = 1 + linha_atual;
+//         passos = passos + 1;
+//     }
+//     if (mapa[linha_atual][coluna_atual] == SAIDA)
+//     {
+//         *saida = 1;
+//     }
+//     return 1;
+// }
 
-void paraDireita(int *parede, int *saida)
-{
-    if (mapa[linha_atual][coluna_atual + 1] == PAREDE || mapa[linha_atual][coluna_atual + 1] == TETO)
-    {
-        *parede = 1;
-    }
-    else
-    {
-        coluna_atual = coluna_atual + 1;
-        passos = passos + 1;
-    }
-    if (mapa[linha_atual][coluna_atual] == SAIDA)
-    {
-        *saida = 1;
-    }
-}
+// int paraCima(int *parede, int *saida)
+// {
+//     if (mapa[linha_atual - 1][coluna_atual] == PAREDE || mapa[linha_atual - 1][coluna_atual] == TETO)
+//     {
+//         *parede = 1;
+//         return 0;
+//     }
+//     else
+//     {
+//         linha_atual = linha_atual - 1;
+//         passos = passos + 1;
+//     }
+//     if (mapa[linha_atual][coluna_atual] == SAIDA)
+//     {
+//         *saida = 1;
+//     }
+//     return 1;
+// }
 
-void paraEsquerda(int *parede, int *saida)
-{
-    if (mapa[linha_atual][coluna_atual - 1] == PAREDE || mapa[linha_atual][coluna_atual - 1] == TETO)
-    {
-        *parede = 1;
-    }
-    else
-    {
-        coluna_atual = coluna_atual - 1;
-        passos = passos + 1;
-    }
+// int paraDireita(int *parede, int *saida)
+// {
+//     if (mapa[linha_atual][coluna_atual + 1] == PAREDE || mapa[linha_atual][coluna_atual + 1] == TETO)
+//     {
+//         *parede = 1;
+//         return 0;
+//     }
+//     else
+//     {
+//         coluna_atual = coluna_atual + 1;
+//         passos = passos + 1;
+//     }
+//     if (mapa[linha_atual][coluna_atual] == SAIDA)
+//     {
+//         *saida = 1;
+//     }
+//     return 1;
+// }
 
-    if (mapa[linha_atual][coluna_atual] == SAIDA)
-    {
-        *saida = 1;
-    }
-}
+// int paraEsquerda(int *parede, int *saida)
+// {
+//     if (mapa[linha_atual][coluna_atual - 1] == PAREDE || mapa[linha_atual][coluna_atual - 1] == TETO)
+//     {
+//         *parede = 1;
+//         return 1;
+//     }
+//     else
+//     {
+//         coluna_atual = coluna_atual - 1;
+//         passos = passos + 1;
+//     }
+
+//     if (mapa[linha_atual][coluna_atual] == SAIDA)
+//     {
+//         *saida = 1;
+//     }
+//     return 1;
+// }
 
 int main()
 {
-    individuo *ind;
-    individuo *newInd[tampop];
+    individuo *indSaida = NULL;
+    individuo *newInd[tampop + 25];
+    // individuo *aux[tampop];
+    populacao pop;
     int pergunta, perg;
     int parede = 0;
     int saida = 0;
@@ -404,6 +485,7 @@ int main()
     int *pontParede = &parede;
     int vet[1000];
     int geracao = 0;
+    int i;
 
     do
     {
@@ -425,75 +507,128 @@ int main()
         case 1:
             system("clear");
             gera_mapa();
-            desenhar_mapa();
+            desenhar_mapa(1, 1);
             break;
         case 2:
             system("clear");
+            for (i = 0; i < 50; i++)
+            {
+                pop.inds[i] = iniciaPopulacao(pontParede, pontSaida);
+                pop.inds[i]->ordem = i + 1;
+            }
+            pop.geracao = 1;
+
+            quicksort(pop.inds, 0, tampop - 1);
+            contador = 0;
+
             do
             {
+                for (i = 0; i < 25; i++)
+                {
+                    newInd[i] = crossOver(pop.inds, pontParede, pontSaida);
+                    newInd[i]->ordem = i + 1;
+                }
 
-                vet[contador] = iniciaPopulacao(&ind, pontParede, pontSaida);
-                ind->fitness = vet[contador];
-                newInd[contador] = ind;
-                printf("indviduo: %d \n", contador + 1);
-                printf("Geracao: %d \n", geracao + 1);
-                if (saida == 1)
+                for (i = 0; i < 50; i++)
                 {
-                    break;
+                    newInd[i + 25] = pop.inds[i];
+                    newInd[i + 25]->ordem = i + 26;
                 }
-                if (contador == tampop)
+
+                quicksort(newInd, 0, tampop + 24);
+
+                float menor = newInd[0]->fitness;
+
+                for (i = 0; i < 50; i++)
                 {
-                    break;
+                    pop.inds[i] = newInd[i];
+                    saida = pop.inds[i]->fitness == 0;
+                    menor = newInd[0]->fitness < menor ? newInd[0]->fitness : menor;
                 }
-                contador += 1;
-                repete = contador;
+                pop.geracao++;
+                for (int i = 0; i < 50; i++)
+                {
+                    for (int j = 0; j < 50; j++)
+                    {
+                        // percurso(pop.inds[i]);
+                        system("clear");
+                        printf("individuo: %d\n", i);
+                        printf("geracao: %d\n", pop.geracao);
+                        printf("fitness: %f\n", pop.inds[i]->fitness);
+                        printf("Menor fitness: %f\n", menor);
+                        if (saida)
+                        {
+                            break;
+                        }
+                    }
+                    if (saida)
+                    {
+                        break;
+                    }
+                }
+
+                // if (contador < 25)
+                // {
+                //     newInd[50 + contador] = crossOver(newInd, pontParede, pontSaida);
+                // }
+                // else
+                // {
+                //     quicksort(newInd, 0, tampop - 1);
+                //     pop.geracao++;
+                // }
+
+                // if (newInd[contador]->geracaoAtual == numGeracoes)
+                // {
+                //     if (contador == 50)
+                //     {
+                //         break;
+                //     }
+                // }
+                // else if (saida == 1)
+                // {
+                //     break;
+                // }
+                // contador++;
+                // if (contador > 50)
+                // {
+                //     contador = 0;
+                // }
+                // for (int i = 0; i < 50; i++)
+                // {
+                //     percurso(newInd[0]->genes[i], pontParede, pontSaida);
+
+                //     if (saida == 1)
+                //     {
+                //         break;
+                //     }
+                // }
+
+                //aux = newInd;
             } while (saida == 0);
 
-            if (saida == 0)
-            {
-                do
-                {
-                    crossOver(&ind, pontParede, pontSaida);
-                    printf("indviduo: %d \n", contador);
-                    printf("Geracao: %d \n", geracao + 1);
-                    if (contador == numGeracoes)
-                    {
-                        break;
-                    }
-                    else if (saida == 1)
-                    {
-                        break;
-                    }
-                    contador += 1;
-                    geracao += 1;
-                } while (saida == 0);
-            }
+            // for (int i = 0; i < 50; i++)
+            // {
+            //     percurso(newInd[0]->genes[i], pontParede, pontSaida);
+            // }
+            // ind = newInd[contador];
+            system("clear");
+            printf("indviduo: %d \n", pop.inds[0]->ordem);
+            printf("Geracao: %d \n", pop.geracao);
             break;
 
         case 3:
-            printf("repetir ultimo?\n");
-            scanf("%d", &perg);
 
-            *pontSaida = 0;
-            linha_atual = 1;
-            coluna_atual = 1;
+            printf("saida: %d", saida);
 
-            if (perg == 1)
-            {
+            saida = 0;
+            // linha_atual = 1;
+            // coluna_atual = 1;
+            percurso(pop.inds[0]);
 
-                for (int i = 0; i < 500; i++)
-                {
-                    percurso(ind->genes[i], pontParede, pontSaida);
-
-                    if (saida == 1)
-                    {
-                        break;
-                    }
-                }
-            }
+            printf("indviduo: %d \n", contador);
+            printf("Geracao: %d \n", pop.geracao);
             break;
         case 4:
-            free(ind);
             system("clear");
             break;
         case 5:
