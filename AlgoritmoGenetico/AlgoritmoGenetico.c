@@ -10,60 +10,59 @@
 #define inicio 2
 #define TETO 3
 #define tampop 1000
-#define qtdFilhos tampop + tampop
 #define qtdGenes 200
+// #define tampop 10
+// #define qtdGenes 30
+#define qtdFilhos tampop + tampop
 #define numGeracoes 5000
 #define mapaX 30
 #define mapaY 30
 
-int percorrido[mapaX][mapaY];
+long int percorrido[mapaX][mapaY];
 
 typedef struct individuo
 {
-    int genes[qtdGenes];
-    float fitness;
-    int ordem;
-    int posicaoFinal[2];
-    int saiu;
-    int colidiu;
+    long int genes[qtdGenes];
+    double fitness;
+    long int ordem;
+    long int posicaoFinal[2];
+    long int saiu;
+    long int colidiu;
 } individuo;
 
 typedef struct populacao
 {
-    int geracao;
+    long int geracao;
     individuo *inds[tampop];
 } populacao;
 
-int s1, s2, melhor1, melhor2, melhor3, melhor4;
+long int s1, s2, melhor1, melhor2, melhor3, melhor4;
 
-// int linha, coluna;
+// long int linha, coluna;
 
-int mapa[mapaX][mapaY];
+long int mapa[mapaX][mapaY];
 
-individuo *crossOver(individuo **ind, int *parede, int *saida);
-individuo *iniciaPopulacao(int *parede, int *saida);
-void percurso(individuo *ind, int slow);
+individuo *crossOver(individuo **pop, individuo *ind);
+individuo *iniciaPopulacao(individuo *ind_local);
+void percurso(individuo *ind, long int slow);
 void gera_mapa();
-void quicksort(individuo **vet, int ini, int final);
+void quicksort(individuo **vet, long int ini, long int final);
 void limpar_labirinto();
-void movimentaAtualiza(individuo *ind, int index, int valor);
+void movimentaAtualiza(individuo *ind, long int index, long int valor);
 void limpaPercorrido();
-int movimenta(int movimento, int *linha, int *coluna);
-int paraBaixo(int *parede, int *saida);
-int paraCima(int *parede, int *saida);
-int paraDireita(int *parede, int *saida);
-int paraEsquerda(int *parede, int *saida);
-int desenhar_mapa();
-int maiorGene();
-int roleta();
-int mutacao();
-int **alocaMapa(int l, int c);
-float fitness(int l, int c);
-int ponto(int i);
+long int movimenta(long int movimento, long int *linha, long int *coluna);
+long int desenhar_mapa();
+long int maiorGene();
+long int roleta();
+long int mutacao();
+long int **alocaMapa(long int l, long int c);
+double fitness(long int l, long int c);
+long int ponto(long int i);
 
 void clear()
 {
     printf("\033[H\033[J");
+    // system("clear");
     usleep(10000);
 }
 
@@ -71,7 +70,7 @@ individuo *cria_individuo()
 {
     individuo *indCriado = (individuo *)malloc(sizeof(individuo));
 
-    // for (int j = 0; j < qtdGenes; j++)
+    // for (long int j = 0; j < qtdGenes; j++)
     // {
     //     indCriado->genes[j] = -1;
     // }
@@ -80,14 +79,29 @@ individuo *cria_individuo()
     indCriado->posicaoFinal[0] = 1;
     indCriado->posicaoFinal[1] = 1;
     indCriado->saiu = 0;
+    indCriado->colidiu = 0;
 
     return indCriado;
 }
 
+void resetaInd(individuo *ind)
+{
+    for (long int j = 0; j < qtdGenes; j++)
+    {
+        ind->genes[j] = -1;
+    }
+    ind->fitness = 0;
+    ind->ordem = 0;
+    ind->posicaoFinal[0] = 1;
+    ind->posicaoFinal[1] = 1;
+    ind->saiu = 0;
+    ind->colidiu = 0;
+}
+
 void limpar_labirinto()
 {
-    int m, n;
-    int linha1, coluna1;
+    long int m, n;
+    long int linha1, coluna1;
 
     for (m = 0; m < mapaX; m++)
     {
@@ -109,7 +123,7 @@ void limpar_labirinto()
 
 void gera_mapa()
 {
-    int m, n;
+    long int m, n;
     // srand(time(NULL));
 
     for (m = 0; m < mapaX; m++)
@@ -120,9 +134,11 @@ void gera_mapa()
             {
                 mapa[m][n] = rand() % 3;
                 // mapa[m][n] = CHAO;
-                // mapa[mapaX / 2][n] = PAREDE;
+                // mapa[mapaX / 3][n] = PAREDE;
+                // mapa[(mapaX / 3) + (mapaX / 3)][n] = PAREDE;
 
-                mapa[mapaX / 2][mapaY - 2] = CHAO;
+                // mapa[mapaX / 3][mapaY - 2] = CHAO;
+                // mapa[(mapaX / 3) + (mapaX / 3)][1] = CHAO;
 
                 mapa[1][1] = 0;
                 if (mapa[m][n] == 2)
@@ -139,14 +155,15 @@ void gera_mapa()
     s1 = rand() % mapaY;
     s2 = rand() % mapaX;
     // s1 = 1;
+    // s1 = mapaY - 2;
     // s2 = mapaX - 2;
     mapa[s2][s1] = 4;
 }
 
-int desenhar_mapa(int linha_atual, int coluna_atual)
+long int desenhar_mapa(long int linha_atual, long int coluna_atual)
 {
-    int linha1, coluna1;
-    int ponto;
+    long int linha1, coluna1;
+    long int ponto;
     for (linha1 = 0; linha1 < mapaX; linha1++)
     {
         for (coluna1 = 0; coluna1 < mapaY; coluna1++)
@@ -192,29 +209,29 @@ int desenhar_mapa(int linha_atual, int coluna_atual)
     return 1;
 }
 
-individuo *iniciaPopulacao(int *parede, int *saida)
+individuo *iniciaPopulacao(individuo *ind_local)
 {
-    individuo *ind_local = cria_individuo();
-    int novoValor;
+    resetaInd(ind_local);
+    long int novoValor;
 
     limpaPercorrido();
-    for (int i = 0; i < qtdGenes; i++)
+    for (long int i = 0; i < qtdGenes; i++)
     {
         novoValor = rand() % 4;
         movimentaAtualiza(ind_local, i, novoValor);
-        printf("%d", ind_local->genes[i]);
+        // printf("%ld", ind_local->genes[i]);
     }
-    printf("\n");
+    // printf("\n");
 
     ind_local->fitness += fitness(ind_local->posicaoFinal[0], ind_local->posicaoFinal[1]);
     return ind_local;
 }
 
-int movimenta(int movimento, int *linha, int *coluna)
+long int movimenta(long int movimento, long int *linha, long int *coluna)
 {
-    int linhaMovimento = *linha;
-    int colunaMovimento = *coluna;
-    int posicao;
+    long int linhaMovimento = *linha;
+    long int colunaMovimento = *coluna;
+    long int posicao;
 
     switch (movimento)
     {
@@ -244,12 +261,12 @@ int movimenta(int movimento, int *linha, int *coluna)
     return 1;
 }
 
-void percurso(individuo *ind, int slow)
+void percurso(individuo *ind, long int slow)
 {
-    int linha_atual = 1;
-    int coluna_atual = 1;
-    int i;
-    int resMovimento;
+    long int linha_atual = 1;
+    long int coluna_atual = 1;
+    long int i;
+    long int resMovimento;
 
     for (i = 0; i < qtdGenes; i++)
     {
@@ -268,22 +285,22 @@ void percurso(individuo *ind, int slow)
 
 void limpaPercorrido()
 {
-    int i, j;
+    long int i, j;
     for (i = 0; i < mapaX; i++)
         for (j = 0; j < mapaY; j++)
             percorrido[i][j] = 0;
 }
 
-void movimentaAtualiza(individuo *ind, int index, int valor)
+void movimentaAtualiza(individuo *ind, long int index, long int valor)
 {
-    int resMovimento = -1;
-    int x, y;
+    long int resMovimento = -1;
+    long int x, y;
 
-    if (index == 0)
-    {
-        ind->posicaoFinal[0] = 1;
-        ind->posicaoFinal[1] = 1;
-    }
+    // if (index == 0)
+    // {
+    //     ind->posicaoFinal[0] = 1;
+    //     ind->posicaoFinal[1] = 1;
+    // }
     ind->genes[index] = valor;
 
     if (!ind->colidiu && !ind->saiu)
@@ -293,74 +310,71 @@ void movimentaAtualiza(individuo *ind, int index, int valor)
         y = ind->posicaoFinal[1];
 
         if (percorrido[x][y])
-            ind->fitness += 1;
+            ind->fitness += 10;
         else
             percorrido[x][y] = 1;
-    }
 
-    if (!resMovimento)
-    {
-        ind->fitness += mapaX * mapaY * 1000;
-        ind->colidiu = 1;
-    }
-    else
-    {
-        // ind->fitness -= 0.5;
-        ind->fitness++;
-    }
+        if (!resMovimento)
+        {
+            ind->fitness += mapaX * mapaY * 1000;
+            ind->colidiu = 1;
+        }
+        else
+        {
+            //ind->fitness -= 10;
+            //ind->fitness++;
+        }
 
-    if (resMovimento == 2 && !ind->saiu)
-        ind->saiu = 1;
+        if (resMovimento == 2 && !ind->saiu)
+            ind->saiu = 1;
+    }
 }
 
-individuo *crossOver(individuo **ind, int *parede, int *saida) //esse foi a função, onde os indviduos pegariam genes de individuos(podendo ou nao ser os melhores indviduos)
+individuo *crossOver(individuo **pop, individuo *ind) //esse foi a funÃ§Ã£o, onde os indviduos pegariam genes de individuos(podendo ou nao ser os melhores indviduos)
 {
-    //// srand(time(NULL));
-    individuo *ind_filho = cria_individuo();
-    int x, y, z, mutar = 0;
-    x = ponto(qtdGenes);
-    y = roleta();
-    z = roleta();
+    resetaInd(ind);
+    long int mutar = 0;
+    individuo *y = pop[roleta()];
+    individuo *z = pop[roleta()];
     mutar = mutacao();
-    int novoValor;
-    int i, j, trueIndex;
+    long int novoValor;
+    long int i, j, trueIndex;
 
-    int tamSeq = (rand() % ((qtdGenes / 2) - (qtdGenes / 3))) + (qtdGenes / 3);
+    long int tamSeq = (rand() % ((qtdGenes / 2) - (qtdGenes / 3))) + (qtdGenes / 3);
 
-    int i1 = ponto(qtdGenes);
-    int i2 = ponto(qtdGenes);
+    long int i1 = ponto(qtdGenes);
+    long int i2 = ponto(qtdGenes);
 
     for (i = i1; i < i1 + tamSeq; i++)
     {
         trueIndex = i % qtdGenes;
-        ind_filho->genes[trueIndex] = ind[z]->genes[trueIndex];
+        ind->genes[trueIndex] = z->genes[trueIndex];
     }
 
     for (j = 0; j < qtdGenes - tamSeq; j++)
     {
-        ind_filho->genes[(j + i) % qtdGenes] = ind[y]->genes[(j + i2) % qtdGenes];
+        ind->genes[(j + i) % qtdGenes] = y->genes[(j + i2) % qtdGenes];
     }
 
-    if (mutar == 1)
+    if (mutar)
     {
-        ind_filho->genes[ponto(qtdGenes)] = rand() % 4;
+        ind->genes[ponto(qtdGenes)] = rand() % 4;
     }
 
     limpaPercorrido();
-    for (int i = 0; i < qtdGenes; i++)
+    for (long int i = 0; i < qtdGenes; i++)
     {
-        movimentaAtualiza(ind_filho, i, ind_filho->genes[i]);
+        movimentaAtualiza(ind, i, ind->genes[i]);
     }
 
-    ind_filho->fitness += fitness(ind_filho->posicaoFinal[0], ind_filho->posicaoFinal[1]);
+    ind->fitness += fitness(ind->posicaoFinal[0], ind->posicaoFinal[1]);
 
-    return ind_filho;
+    return ind;
 }
 
-int mutacao()
+long int mutacao()
 {
-    //// srand(time(NULL));
-    int aleatorio, mutar;
+    long int aleatorio, mutar;
     aleatorio = rand() % 10;
 
     if (aleatorio >= 3 && aleatorio <= 10)
@@ -373,22 +387,19 @@ int mutacao()
     }
 }
 
-int ponto(int i)
+long int ponto(long int i)
 {
-    //escolhe um ponto aleatorio de um indviduo para "transferir" seus genes para o filho
-    //// srand(time(NULL));
-
-    int aleatorio;
-
+    long int aleatorio;
     aleatorio = rand() % i;
     return aleatorio;
 }
 
-int roleta()
+long int roleta()
 {
-    //// srand(time(NULL));
-    // escolhe aleatoriamente um indviduo, entre 1º, 2º, 3º e 4º;
-    int aleatorio, primeiro = rand() % (qtdGenes / 2), segundo = (rand() % (qtdGenes / 2)) + (qtdGenes / 2) - 1;
+    // escolhe aleatoriamente um indviduo, entre 1Âº, 2Âº, 3Âº e 4Âº;
+    long int aleatorio;
+    long int primeiro = rand() % (qtdGenes / 2);
+    long int segundo = (rand() % (qtdGenes / 2)) + (qtdGenes / 2) - 1;
 
     aleatorio = rand() % 10;
 
@@ -396,44 +407,23 @@ int roleta()
 
     if (aleatorio >= 4 && aleatorio <= 11)
     {
-        return primeiro;
+        return primeiro % tampop;
     }
     else if (aleatorio >= 1 && aleatorio <= 3)
     {
-        return segundo;
+        return segundo % tampop;
     }
 }
 
-float fitness(int l, int c)
+double fitness(long int l, long int c)
 {
-
     return sqrt(pow(s2 - l, 2) + pow(s1 - c, 2));
 }
 
-// int maiorGene()
-// {
-//     if (i > j && i > k && i > l)
-//     {
-//         return i;
-//     }
-//     else if (j > i && j > k && j > l)
-//     {
-//         return j;
-//     }
-//     else if (k > i && k > j && k > l)
-//     {
-//         return k;
-//     }
-//     else
-//     {
-//         return l;
-//     }
-// }
-
-void quicksort(individuo **vet, int ini, int final)
+void quicksort(individuo **vet, long int ini, long int final)
 {
-    int i, j;
-    float meio;
+    long int i, j;
+    double meio;
     individuo *aux;
 
     i = ini;
@@ -465,34 +455,119 @@ void quicksort(individuo **vet, int ini, int final)
         quicksort(vet, i, final);
 }
 
-int main()
+void geracoes(populacao *populacao)
+{
+    individuo *pop[tampop];
+    individuo *filhos[qtdFilhos];
+    individuo *total[tampop + qtdFilhos];
+    populacao->geracao = 1;
+
+    long int i, j;
+    long int saiu = 0;
+
+    // Inicializa todos os ponteiros
+    for (i = 0; i < tampop; i++)
+    {
+        pop[i] = cria_individuo();
+        pop[i]->ordem = i + 1;
+    }
+
+    for (i = 0; i < qtdFilhos; i++)
+    {
+        filhos[i] = cria_individuo();
+        pop[i]->ordem = i + 1;
+    }
+
+    // Inicializa populacao
+    for (i = 0; i < tampop; i++)
+        iniciaPopulacao(pop[i]);
+
+    quicksort(pop, 0, tampop - 1);
+
+    //usleep(100000);
+    percurso(pop[0], 0);
+    printf("Percurso da geracao: %ld\n", populacao->geracao);
+    printf("melhor Fitness: %f\n", pop[0]->fitness);
+
+    do
+    {
+
+        for (i = 0; i < qtdFilhos; i++)
+        {
+            crossOver(pop, filhos[i]);
+            pop[i]->ordem = i != 1000? i + 1:i + 1 + 1000;
+            filhos[i]->ordem = i != 1000? i + 1:i + 1 + 1000;
+        }
+
+        for (i = 0; i < tampop; i++)
+            total[i] = pop[i];
+
+        for (i = 0; i < qtdFilhos; i++)
+            total[i + tampop] = filhos[i];
+
+        quicksort(total, 0, tampop + qtdFilhos - 1);
+
+        for (i = 0; i < tampop; i++)
+        {
+            pop[i] = total[i];
+            if (pop[i]->saiu == 1)
+                saiu = 1;
+        }
+
+        for (i = 0; i < qtdFilhos; i++)
+        {
+            filhos[i] = total[i + tampop];
+            if (filhos[i]->saiu == 1)
+                saiu = 1;
+        }
+
+        populacao->geracao++;
+
+        if (populacao->geracao % 1000 == 0)
+        {
+            percurso(pop[0], 0);
+            printf("Percurso da geracao: %ld\n", populacao->geracao);
+            printf("melhor Fitness: %f\n", pop[0]->fitness);
+            printf("melhor Individuo: %ld\n", pop[0]->ordem - 1000);
+        }
+
+    } while (!saiu);
+
+    for (i = 0; i < tampop; i++)
+        populacao->inds[i] = pop[i];
+
+    percurso(pop[0], 0);
+    printf("Percurso da geracao: %ld\n", populacao->geracao);
+    printf("melhor Fitness: %f\n", pop[0]->fitness);
+    printf("melhor Individuo: %ld\n", pop[0]->ordem - 1000);
+}
+
+long int main()
 {
     srand(time(NULL));
-    individuo *newInd[qtdFilhos + tampop];
-    // individuo *aux[tampop];
     populacao pop;
-    int pergunta, perg;
-    int parede = 0;
-    int saida = 0;
-    int contador = 0;
-    int repete = 0;
-    int *pontSaida = &saida;
-    int *pontParede = &parede;
-    int vet[1000];
-    int geracao = 0;
-    int i;
+    long int pergunta, perg;
+    long int parede = 0;
+    long int saida = 0;
+    long int contador = 0;
+    long int repete = 0;
+    long int *pontSaida = &saida;
+    long int *pontParede = &parede;
+    long int vet[1000];
+    long int geracao = 0;
+    long int i;
 
     do
     {
         printf("Digite sua opcao\n");
         printf("0 - sair\n");
         printf("1 - gerar labirinto\n");
-        printf("2 - começar labirinto\n");
+        printf("2 - comeÃ§ar labirinto\n");
         printf("3 - repetir individuo final\n");
         printf("4 - free individuos\n");
         printf("5 - limpar labirinto\n");
         printf("6 - limpar e gerar novo labirinto\n");
-        scanf("%d", &perg);
+        scanf("%ld", &perg);
 
         switch (perg)
         {
@@ -506,100 +581,20 @@ int main()
             desenhar_mapa(1, 1);
             break;
         case 2:
-            clear();
-            saida = 0;
-            for (i = 0; i < tampop; i++)
-            {
-                pop.inds[i] = iniciaPopulacao(pontParede, pontSaida);
-                pop.inds[i]->ordem = i + 1;
-                if (pop.inds[i]->saiu && !saida)
-                    saida = 1;
-            }
-            pop.geracao = 1;
-
-            quicksort(pop.inds, 0, tampop - 1);
-            contador = 0;
-
-            percurso(pop.inds[0], 0);
-
-            if (saida)
-                break;
-
-            float menor;
-            int contador = 0;
-            do
-            {
-
-                pop.geracao++;
-                for (i = 0; i < qtdFilhos; i++)
-                {
-                    newInd[i] = crossOver(pop.inds, pontParede, pontSaida);
-                    individuo *ind = pop.inds[i];
-                    newInd[i]->ordem = i + 1;
-                }
-                // return 0;
-
-                for (i = 0; i < tampop; i++)
-                {
-                    newInd[qtdFilhos + i] = pop.inds[i];
-                    newInd[qtdFilhos + i]->ordem = i + qtdFilhos + 1;
-                }
-
-                quicksort(newInd, 0, qtdFilhos + tampop - 1);
-
-                menor = newInd[0]->fitness;
-
-                for (i = 0; i < tampop; i++)
-                {
-                    pop.inds[i] = newInd[i];
-                    menor = newInd[i]->fitness < menor ? newInd[i]->fitness : menor;
-                    // saida = pop.inds[i]->fitness == 0;
-
-                    if (pop.inds[i]->saiu && !saida)
-                        saida = 1;
-                }
-                
-                // for (i = 0; i < 2000; i++)
-                // {
-                //     free(newInd[tampop + i]);
-                // }
-
-                //free(newInd);
-
-                if (pop.geracao % 1000 == 0)
-                {
-                    percurso(pop.inds[0], 0);
-                    printf("Percurso da geracao: %d\n", pop.geracao);
-                }
-                if (pop.geracao == 4000)
-                {
-                    break;
-                }
-            } while (saida == 0 /*|| ++contador < 5000*/);
-
-            // for (int i = 0; i < 50; i++)
-            // {
-            //     percurso(newInd[0]->genes[i], pontParede, pontSaida);
-            // }
-            // ind = newInd[contador];
-            clear();
-            printf("indviduo: %d \n", pop.inds[0]->ordem);
-            printf("Geracao: %d \n", pop.geracao);
-            printf("Fitness: %f \n", pop.inds[0]->fitness);
-            printf("Saiu: %d \n", pop.inds[0]->saiu);
+            // clear();
+            geracoes(&pop);
             break;
-
         case 3:
 
-            printf("saida: %d", saida);
+            printf("saida: %ld", saida);
 
             saida = 0;
             // linha_atual = 1;
             // coluna_atual = 1;
             percurso(pop.inds[0], 1);
 
-            printf("indviduo: %d \n", pop.inds[0]->ordem);
-            printf("Geracao: %d \n", pop.geracao);
+            printf("indviduo: %ld \n", pop.inds[0]->ordem);
+            printf("Geracao: %ld \n", pop.geracao);
             break;
         case 4:
             clear();
@@ -615,94 +610,9 @@ int main()
             desenhar_mapa(1, 1);
             break;
         default:
-            printf("Digite uma opção valida\n");
+            printf("Digite uma opÃ§Ã£o valida\n");
             break;
         }
     } while (perg != 0);
-
-    // if (pergunta == 1)
-    // {
-
-    //     do
-    //     {
-
-    //         vet[contador] = iniciaPopulacao(&ind, pontParede, pontSaida);
-    //         ind->fitness = vet[contador];
-    //         newInd[contador] = ind;
-    //         printf("indviduo: %d \n", contador + 1);
-    //         printf("Geracao: %d \n", geracao);
-    //         if (saida == 1)
-    //         {
-    //             break;
-    //         }
-    //         if (contador == tampop)
-    //         {
-    //             break;
-    //         }
-    //         contador += 1;
-    //         repete = contador;
-
-    //     } while (saida == 0);
-
-    //     //tivemos alguns problemas com o crossover dos indiduos,
-    //     //onde eles nao recebiam os valores corretos e os individuos nao conseguiam chegar ao objetivo;
-
-    //     //por isso desabilitamos ela para refazer os testes, ao longo do projeto tentamos resolver,
-    //     //mas nao conseguimos, e estamos fazendo o possivel para resolver a problematica;
-
-    //     contador = 0;
-    //     if (saida == 0)
-    //     {
-
-    //         do
-    //         {
-    //             crossOver(&newInd, pontParede, pontSaida);
-    //             printf("indviduo: %d \n", contador);
-    //             printf("Geracao: %d \n", geracao);
-    //             if (contador == numGeracoes)
-    //             {
-    //                 break;
-    //             }
-    //             else if (saida == 1)
-    //             {
-    //                 break;
-    //             }
-    //             contador += 1;
-    //             geracao += 1;
-    //         } while (saida == 0);
-    //     }
-    // }
-
-    // printf("repetir ultimo?\n");
-    // scanf("%d", &perg);
-
-    // *pontSaida = 0;
-    // linha_atual = 1;
-    // coluna_atual = 1;
-
-    // if (perg == 1)
-    // {
-
-    //     for (int i = 0; i < 500; i++)
-    //     {
-    //         percurso(ind->genes[i], pontParede, pontSaida);
-
-    //         if (saida == 1)
-    //         {
-    //             break;
-    //         }
-    //     }
-    // }
-
-    // int remove = 0;
-
-    // printf("apagar?1 - sim, 2 - nao\n");
-    // scanf("%d", &remove);
-
-    // if (remove == 1)
-    // {
-    //     free(ind);
-    // }
-
     return 0;
 }
