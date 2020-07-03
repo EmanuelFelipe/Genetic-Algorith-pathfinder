@@ -44,6 +44,7 @@ long int mapa[mapaX][mapaY];
 
 individuo *crossOver(individuo **pop, individuo *ind);
 individuo *iniciaPopulacao(individuo *ind_local);
+void geracoes(populacao *populacao);
 void percurso(individuo *ind, long int slow);
 void gera_mapa();
 void quicksort(individuo **vet, long int ini, long int final);
@@ -55,9 +56,9 @@ long int desenhar_mapa();
 long int maiorGene();
 long int roleta();
 long int mutacao();
+long int ponto(long int i);
 long int **alocaMapa(long int l, long int c);
 double fitness(long int l, long int c);
-long int ponto(long int i);
 
 void clear()
 {
